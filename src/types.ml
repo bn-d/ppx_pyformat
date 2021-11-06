@@ -55,7 +55,7 @@ type string_format_spec = {
 }
 
 type int_format_spec = {
-  int_type : int_type;
+  type_ : int_type;
   fill : (fill * width) option;
   alternate_form : bool;
   grouping_option : grouping_option option;
@@ -63,7 +63,7 @@ type int_format_spec = {
 }
 
 type float_format_spec = {
-  float_type : float_type;
+  type_ : float_type;
   fill : (fill * width) option;
   (* TODO check whether float have grouping option *)
   grouping_option : bool;
