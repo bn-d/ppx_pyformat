@@ -86,3 +86,5 @@ type element = | Text of string | Field of replacement_field
 
 type elements = element list
 
+let validate_field _raw =
+  failwith ""

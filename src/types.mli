@@ -86,3 +86,4 @@ type element = | Text of string | Field of replacement_field
 
 type elements = element list
 
+val validate_field : raw_replacement_field -> replacement_field
