@@ -5,5 +5,7 @@
   (pps ppxlib.metaquot))
  (libraries ppxlib))
 
-(menhir (modules parser))
+(menhir
+ (modules parser))
+
 (ocamllex lexer)

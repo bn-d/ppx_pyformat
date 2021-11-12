@@ -1,32 +1,25 @@
-type arg = | Digit of int | Identifier of string list
+type arg = Digit of int | Identifier of string list
 
 (* TODO how to distingguish list or hashtable *)
 type index = unit
 
-type field = {
-  arg : arg;
-  index : index option;
-}
+type field = { arg : arg; index : index option }
 
-type align = | Left | Right | Pad | Center
+type align = Left | Right | Pad | Center
 
-type sign = | Plus | Minus | Space
+type sign = Plus | Minus | Space
 
 type width = int
 
-type fill = {
-  char_ : char option;
-  align : align;
-}
+type fill = { char_ : char option; align : align }
 
-type grouping_option = | Comma | Underscore
+type grouping_option = Comma | Underscore
 
-type int_type = | Binary | Char | Decimal | Oxtal | Hex
+type int_type = Binary | Char | Decimal | Oxtal | Hex
 
-type float_type = | Scientific | Fixed | General | Percentage
+type float_type = Scientific | Fixed | General | Percentage
 
-type type_ =
-  | String | Int of int_type | Float of float_type
+type type_ = String | Int of int_type | Float of float_type
 
 type raw_format_spec = {
   fill : fill option;
@@ -46,13 +39,11 @@ type raw_replacement_field = {
   format_spec : raw_format_spec option;
 }
 
-type raw_element = | Raw_text of string | Raw_field of raw_replacement_field
+type raw_element = Raw_text of string | Raw_field of raw_replacement_field
 
 type raw_elements = raw_element list
 
-type string_format_spec = {
-  fill : (fill * width) option;
-}
+type string_format_spec = { fill : (fill * width) option }
 
 type int_format_spec = {
   type_ : int_type;
@@ -82,9 +73,8 @@ type replacement_field = {
   format_spec : format_spec;
 }
 
-type element = | Text of string | Field of replacement_field
+type element = Text of string | Field of replacement_field
 
 type elements = element list
 
-let validate_field _raw =
-  failwith ""
+let validate_field _raw = failwith ""
