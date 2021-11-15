@@ -30,13 +30,15 @@ type raw_format_spec = {
   precision : int option;
   type_ : type_;
   upper : unit option;
-} [@@deriving make]
+}
+[@@deriving make]
 
 type raw_replacement_field = {
   field : field option;
   conversion : string list option;
   format_spec : raw_format_spec option;
-} [@@deriving make]
+}
+[@@deriving make]
 
 type raw_element = Raw_text of string | Raw_field of raw_replacement_field
 
@@ -71,6 +73,7 @@ type replacement_field = {
   conversion : string option;
   format_spec : format_spec;
 }
+[@@deriving make]
 
 type element = Text of string | Field of replacement_field
 
