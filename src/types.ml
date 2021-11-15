@@ -28,7 +28,7 @@ type raw_format_spec = {
   width : width option;
   grouping_option : grouping_option option;
   precision : int option;
-  type_ : type_;
+  type_ : type_ option;
   upper : unit option;
 }
 [@@deriving make]
@@ -70,7 +70,7 @@ type format_spec =
 
 type replacement_field = {
   field : field;
-  conversion : string option;
+  conversion : string list option;
   format_spec : format_spec;
 }
 [@@deriving make]
