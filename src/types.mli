@@ -1,9 +1,8 @@
 type arg = Digit of int | Identifier of string list
 
-(* TODO how to distingguish list or hashtable *)
-type index = unit
+type index = List_index of int
 
-type field = { arg : arg; index : index option }
+type field = { arg : arg; index : index option } [@@deriving make]
 
 type align = Left | Right | Pad | Center
 
@@ -31,13 +30,13 @@ type raw_format_spec = {
   precision : int option;
   type_ : type_;
   upper : unit option;
-}
+} [@@deriving make]
 
 type raw_replacement_field = {
   field : field option;
-  conversion : string option;
+  conversion : string list option;
   format_spec : raw_format_spec option;
-}
+} [@@deriving make]
 
 type raw_element = Raw_text of string | Raw_field of raw_replacement_field
 

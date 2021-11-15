@@ -15,5 +15,6 @@
  (synopsis "Ppxlib based string format rewriter inspired by Python string `format`")
  (depends
   (ppxlib (>= 0.10.0))
+  (ppx_make (>= 0.3.0))
   (ounit2 :with-test)))
 (using menhir 2.1)

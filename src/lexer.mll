@@ -2,6 +2,8 @@
 open Lexing
 open Parser
 
+module Utils = Lexer_utils
+
 exception SyntaxError of string
 
 let next_line lexbuf =
@@ -30,17 +32,46 @@ rule read = parse
   | eof { EOF }
 
 and read_arg_name = parse
-  | digit+ { DIGIT_ARG_NAME (int_of_string (Lexing.lexeme lexbuf)); read_index lexbuf }
-  | _ { read_identifier false (Lexing.lexme lexbuf) }
+  | digit+ { read_index (Types.Digit (int_of_string (Lexing.lexeme lexbuf))) lexbuf }
+  | "" { read_identifier [] lexbuf }
 
-and read_identifier has_id = parse
-  | module_ { IDENTIFIER_MODULE_NAME (Lexing.lexme lexbuf); read_identifier true lexbuf }
-  | id_ { IDENTIFIER_ARG_NAME (Lexing.lexeme lexbuf); read_index lexbuf }
-  | _ { if has_id then raise (SyntaxError "Invalid identifier") else read_index (Lexing.lexme lexbuf) }
+and read_identifier acc = parse
+  | module_ {  read_identifier ((Lexing.lexeme lexbuf)::acc) lexbuf }
+  | id_ { read_index (Types.Identifier ((Lexing.lexeme lexbuf)::acc)) lexbuf }
+  | "" {
+    if List.length acc > 0 then
+      raise (SyntaxError "Invalid identifier")
+    else (* set default value for field*)
+      read_index (Types.Digit 0) lexbuf
+  }
 
-  (* TODO *)
-and read_index = parse
-  | '}' { RIGHT }
-  | _ { raise (SyntaxError "Unmatched curly brace")}
+and read_index arg = parse
+  (* TODO implement hashtable index *)
+  | '[' digit+ ']' {
+    let index = Utils.parser_list_index (Lexing.lexeme lexbuf) in
+    let field = Types.make_field ~arg ~index () in
+    read_conversion field [] lexbuf
+  }
+  | "" { let field = Types.make_field ~arg () in read_conversion field [] lexbuf }
+
+and read_conversion field acc = parse
+  | module_ {  read_conversion field ((Lexing.lexeme lexbuf)::acc) lexbuf }
+  | id_ {
+    let rp_field = Types.make_raw_replacement_field
+                     ~field ~conversion:((Lexing.lexeme lexbuf)::acc) ()
+    in
+    read_align rp_field lexbuf
+  }
+  | "" {
+    if List.length acc > 0 then
+      raise (SyntaxError "Invalid identifier for conversion function")
+    else
+      let rp_field = Types.make_raw_replacement_field ~field () in
+      read_align rp_field lexbuf
+  }
+
+and read_align rp_field = parse
+  | "}" { FIELD rp_field }
+  | _ { raise (SyntaxError "Unmatched curly brace for replacement field")}
 
 
