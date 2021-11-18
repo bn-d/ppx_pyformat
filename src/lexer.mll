@@ -20,7 +20,7 @@ let lower = ['a' - 'z']
 let word_char = digit | upper | lower | '_'
 
 let not_curl = [^ '{' '}']*
-let module_ = upper word_char*
+let module_ = upper word_char* '.'
 let id_ = lower word_char*
 
 rule read = parse
@@ -40,7 +40,7 @@ and read_arg_name = parse
 
 and read_identifier acc = parse
   | module_ {
-    let acc = (Lexing.lexeme lexbuf)::acc in
+    let acc = (Lexer_utils.parse_module (Lexing.lexeme lexbuf))::acc in
     read_identifier acc lexbuf
   }
   | id_ {
@@ -63,7 +63,7 @@ and make_field arg = parse
 and read_index field = parse
   (* TODO implement hashtable index *)
   | '[' digit+ ']' {
-    let index = Utils.parser_list_index (Lexing.lexeme lexbuf) in
+    let index = Utils.parse_list_index (Lexing.lexeme lexbuf) in
     make_rp_field (Some { field with index }) lexbuf
   }
   | "" { make_rp_field (Some field) lexbuf }
