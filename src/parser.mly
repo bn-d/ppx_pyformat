@@ -7,8 +7,8 @@
 
 prog:
   | EOF { [] }
-  | f = FIELD; tl = prog { (Types.Field (Types.validate_field f)) :: tl }
-  | str = string_; f = FIELD; tl = prog { (Types.Text str) :: (Types.Field (Types.validate_field f)) :: tl }
+  | f = FIELD; tl = prog { (Types.Field (Type_utils.sanitize_field f)) :: tl }
+  | str = string_; f = FIELD; tl = prog { (Types.Text str) :: (Types.Field (Type_utils.sanitize_field f)) :: tl }
   | str = string_; EOF { [Types.Text str] }
 
 string_: l = string_list { String.concat "" l }

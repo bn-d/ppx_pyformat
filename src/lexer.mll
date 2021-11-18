@@ -50,8 +50,8 @@ and read_identifier acc = parse
   | "" {
     if List.length acc > 0 then
       raise (SyntaxError "Invalid identifier")
-    else (* set default value for field*)
-      make_field (Types.Digit 0) lexbuf
+    else (* skip read index if no field is provided *)
+      make_rp_field None lexbuf
   }
 
 and make_field arg = parse
@@ -64,13 +64,13 @@ and read_index field = parse
   (* TODO implement hashtable index *)
   | '[' digit+ ']' {
     let index = Utils.parser_list_index (Lexing.lexeme lexbuf) in
-    make_rp_field { field with index } lexbuf
+    make_rp_field (Some { field with index }) lexbuf
   }
-  | "" { make_rp_field field lexbuf }
+  | "" { make_rp_field (Some field) lexbuf }
 
-and make_rp_field field = parse
+and make_rp_field field_opt = parse
   | "" {
-    let rp_field = Types.make_raw_replacement_field ~field () in
+    let rp_field = Types.make_raw_replacement_field ?field:field_opt () in
     read_conversion rp_field lexbuf
   }
 
@@ -96,6 +96,6 @@ and make_format_spec rp_field = parse
 
 and read_align rp_field format_spec = parse
   | "}" { FIELD { rp_field with format_spec = Some format_spec} }
-  | _ { raise (SyntaxError "Unmatched curly brace for replacement field")}
+  | _ { raise (SyntaxError "Unmatched curly brace for replacement field") }
 
 

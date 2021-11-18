@@ -49,6 +49,7 @@ type string_format_spec = { fill : (fill * width) option }
 type int_format_spec = {
   type_ : int_type;
   fill : (fill * width) option;
+  sign : sign option;
   alternate_form : bool;
   grouping_option : grouping_option option;
   upper : bool;
@@ -57,9 +58,9 @@ type int_format_spec = {
 type float_format_spec = {
   type_ : float_type;
   fill : (fill * width) option;
-  (* TODO check whether float have grouping option *)
-  grouping_option : bool;
-  precision : int option;
+  sign : sign option;
+  grouping_option : grouping_option option;
+  precision : int;
   upper : bool;
 }
 
@@ -78,5 +79,3 @@ type replacement_field = {
 type element = Text of string | Field of replacement_field
 
 type elements = element list
-
-let validate_field _raw = failwith ""
