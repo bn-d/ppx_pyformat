@@ -16,5 +16,6 @@
  (depends
   (ppxlib (>= 0.10.0))
   (ppx_make (>= 0.3.0))
+  (menhir)
   (ounit2 :with-test)))
 (using menhir 2.1)
