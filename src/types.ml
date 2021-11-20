@@ -1,8 +1,8 @@
+exception ValueError of string
+
 type arg = Digit of int | Identifier of string list
 
 type index = List_index of int
-
-type field = { arg : arg; index : index option } [@@deriving make]
 
 type align = Left | Right | Pad | Center
 
@@ -34,7 +34,8 @@ type raw_format_spec = {
 [@@deriving make]
 
 type raw_replacement_field = {
-  field : field option;
+  arg : arg option;
+  index : index option;
   conversion : string list option;
   format_spec : raw_format_spec option;
 }
@@ -70,7 +71,8 @@ type format_spec =
   | Float_format of float_format_spec
 
 type replacement_field = {
-  field : field;
+  arg : arg;
+  index : index option;
   conversion : string list option;
   format_spec : format_spec;
 }

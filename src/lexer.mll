@@ -26,76 +26,77 @@ let id_ = lower word_char*
 rule read = parse
   | "{{" { STR "{" }
   | "}}" { STR "}" }
-  | '{' { read_arg_name lexbuf }
+  | '{' {
+    let field = Types.make_raw_replacement_field () in
+    read_arg_name field lexbuf
+  }
   | not_curl { STR (Lexing.lexeme lexbuf) }
   | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
   | eof { EOF }
 
-and read_arg_name = parse
+and read_arg_name field = parse
   | digit+ {
-    let arg = Types.Digit (int_of_string (Lexing.lexeme lexbuf)) in
-    make_field arg lexbuf
+    let arg =
+      Types.Digit (int_of_string (Lexing.lexeme lexbuf)) |> Option.some
+    in
+    read_index { field with arg } lexbuf
   }
-  | "" { read_identifier [] lexbuf }
+  | "" { read_identifier [] field lexbuf }
 
-and read_identifier acc = parse
+and read_identifier acc field = parse
   | module_ {
     let acc = (Lexer_utils.parse_module (Lexing.lexeme lexbuf))::acc in
-    read_identifier acc lexbuf
+    read_identifier acc field lexbuf
   }
   | id_ {
-    let arg = Types.Identifier ((Lexing.lexeme lexbuf)::acc) in
-    make_field arg lexbuf
+    let arg =
+      Types.Identifier ((Lexing.lexeme lexbuf)::acc) |> Option.some
+    in
+    read_index { field with arg } lexbuf
   }
   | "" {
     if List.length acc > 0 then
       raise (SyntaxError "Invalid identifier")
     else (* skip read index if no field is provided *)
-      make_rp_field None lexbuf
-  }
-
-and make_field arg = parse
-  | "" {
-    let field = Types.make_field ~arg () in
-    read_index field lexbuf
+      read_index field lexbuf
   }
 
 and read_index field = parse
   (* TODO implement hashtable index *)
   | '[' digit+ ']' {
-    let index = Utils.parse_list_index (Lexing.lexeme lexbuf) in
-    make_rp_field (Some { field with index }) lexbuf
+    let index =
+      Utils.parse_list_index (Lexing.lexeme lexbuf) |> Option.some
+    in
+    read_conversion { field with index } lexbuf
   }
-  | "" { make_rp_field (Some field) lexbuf }
+  | "" { read_conversion field lexbuf }
 
-and make_rp_field field_opt = parse
-  | "" {
-    let rp_field = Types.make_raw_replacement_field ?field:field_opt () in
-    read_conversion rp_field lexbuf
-  }
+and read_conversion field = parse
+  | "!" { read_conversion_id [] field lexbuf }
+  | "" { read_format_spec field lexbuf }
 
-and read_conversion rp_field = parse
-  | "!" { read_conversion_id rp_field [] lexbuf }
-  | "" { make_format_spec rp_field lexbuf }
-
-and read_conversion_id rp_field acc = parse
-  | module_ { read_conversion_id rp_field ((Lexing.lexeme lexbuf)::acc) lexbuf }
+and read_conversion_id acc field = parse
+  | module_ { read_conversion_id ((Lexing.lexeme lexbuf)::acc) field lexbuf }
   | id_ {
-    let conversion = Some ((Lexing.lexeme lexbuf)::acc) in
-    make_format_spec { rp_field with conversion } lexbuf
+    let conversion = ((Lexing.lexeme lexbuf)::acc) |> Option.some in
+    read_format_spec { field with conversion } lexbuf
   }
   | "" {
     raise (SyntaxError "Invalid identifier for conversion function")
   }
 
-and make_format_spec rp_field = parse
-  | "" {
+and read_format_spec field = parse
+  | ":" {
     let format_spec = Types.make_raw_format_spec () in
-    read_align rp_field format_spec lexbuf
+    read_align format_spec field lexbuf
   }
+  | "" { read_field_end field lexbuf }
 
-and read_align rp_field format_spec = parse
-  | "}" { FIELD { rp_field with format_spec = Some format_spec} }
+and read_align format_spec field = parse
+  | "}" { FIELD { field with format_spec = Some format_spec} }
   | _ { raise (SyntaxError "Unmatched curly brace for replacement field") }
 
+and read_field_end field = parse
+  | "}" { FIELD field }
+  | _ { raise (Types.ValueError "unmatched '{' in format spec") }
 

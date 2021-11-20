@@ -1,10 +1,5 @@
 open Types
 
-exception ValueError of string
-
-(* by default, use the first value in input *)
-let default_field = make_field ~arg:(Digit 0) ()
-
 (* by default, use string *)
 let default_format_spec = String_format { fill = None }
 
@@ -70,9 +65,36 @@ let sanitize_string_format_spec fs =
   in
   String_format { fill }
 
+type mode = Auto of int | Manual
+
+let current_mode : mode option ref = ref None
+
 let sanitize_field (raw : raw_replacement_field) : replacement_field =
   (* set default field value if none *)
-  let field = raw.field |> Option.value ~default:default_field in
+  let arg =
+    match (!current_mode, raw.arg) with
+    | None, None ->
+        let _ = current_mode := Some (Auto 1) in
+        Digit 0
+    | None, Some a ->
+        let _ = current_mode := Some Manual in
+        a
+    | Some (Auto n), None ->
+        let _ = current_mode := Some (Auto (n + 1)) in
+        Digit n
+    | Some Manual, Some a -> a
+    | Some (Auto _), Some _ ->
+        raise
+          (ValueError
+             "cannot switch from automatic field numbering to manual field \
+              specification")
+    | Some Manual, None ->
+        raise
+          (ValueError
+             "cannot switch from manual field specification to automatic field \
+              numbering")
+  in
+  let index = raw.index in
   let conversion = raw.conversion in
   (* set default format spec if none else map according to type *)
   let format_spec =
@@ -84,4 +106,4 @@ let sanitize_field (raw : raw_replacement_field) : replacement_field =
            | Some String | None -> sanitize_string_format_spec fs)
     |> Option.value ~default:default_format_spec
   in
-  { field; conversion; format_spec }
+  { arg; index; conversion; format_spec }
