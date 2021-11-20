@@ -1,3 +1,5 @@
+exception TypeError of string
+
 exception ValueError of string
 
 type arg = Digit of int | Identifier of string list
@@ -34,7 +36,7 @@ type raw_format_spec = {
 [@@deriving make]
 
 type raw_replacement_field = {
-  arg : arg option;
+  arg : arg;
   index : index option;
   conversion : string list option;
   format_spec : raw_format_spec option;

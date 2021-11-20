@@ -1,5 +1,35 @@
 open Types
 
+type mode = Auto of int | Manual
+
+let arg_mode : mode option ref = ref None
+
+let reset_arg_mode _ = arg_mode := None
+
+let set_arg_manual _ =
+  match !arg_mode with
+  | None -> arg_mode := Some Manual
+  | Some Manual -> ()
+  | Some (Auto _) ->
+      raise
+        (ValueError
+           "cannot switch from automatic field numbering to manual field \
+            specification")
+
+let get_auto_arg _ =
+  match !arg_mode with
+  | None ->
+      let _ = arg_mode := Some (Auto 1) in
+      Digit 0
+  | Some (Auto n) ->
+      let _ = arg_mode := Some (Auto (n + 1)) in
+      Digit n
+  | Some Manual ->
+      raise
+        (ValueError
+           "cannot switch from manual field specification to automatic field \
+            numbering")
+
 (* by default, use string *)
 let default_format_spec = String_format { fill = None }
 
@@ -65,35 +95,8 @@ let sanitize_string_format_spec fs =
   in
   String_format { fill }
 
-type mode = Auto of int | Manual
-
-let current_mode : mode option ref = ref None
-
 let sanitize_field (raw : raw_replacement_field) : replacement_field =
-  (* set default field value if none *)
-  let arg =
-    match (!current_mode, raw.arg) with
-    | None, None ->
-        let _ = current_mode := Some (Auto 1) in
-        Digit 0
-    | None, Some a ->
-        let _ = current_mode := Some Manual in
-        a
-    | Some (Auto n), None ->
-        let _ = current_mode := Some (Auto (n + 1)) in
-        Digit n
-    | Some Manual, Some a -> a
-    | Some (Auto _), Some _ ->
-        raise
-          (ValueError
-             "cannot switch from automatic field numbering to manual field \
-              specification")
-    | Some Manual, None ->
-        raise
-          (ValueError
-             "cannot switch from manual field specification to automatic field \
-              numbering")
-  in
+  let arg = raw.arg in
   let index = raw.index in
   let conversion = raw.conversion in
   (* set default format spec if none else map according to type *)
