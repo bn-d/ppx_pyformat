@@ -127,7 +127,6 @@ and read_alterhate_form format_spec field = parse
   }
   | "" { read_width format_spec field lexbuf }
 
-  (* TODO test *)
 and read_width format_spec field = parse
   | digit+ {
     let zero, width = Lexer_utils.parse_width (lexeme lexbuf) in
