@@ -33,18 +33,22 @@ let get_auto_arg _ =
 (* by default, use string *)
 let default_format_spec = String_format { fill = None }
 
+let default_char = Some ' '
+
 let handle_fill fs =
   match (fs.width, fs.fill, fs.zero) with
   (* no width no fill *)
   | None, _, _ | Some 0, _, _ -> None
   (* fill will overwrite zero setting *)
-  | Some w, Some f, _ -> Some (f, w)
+  | Some w, Some f, _ ->
+      let char_ = match f.char_ with None -> default_char | c -> c in
+      Some ({ f with char_ }, w)
   | Some w, None, Some () ->
       let f = { char_ = Some '0'; align = Pad } in
       Some (f, w)
   (* by default, align right fill with space *)
   | Some w, None, None ->
-      let f = { char_ = None; align = Right } in
+      let f = { char_ = default_char; align = Right } in
       Some (f, w)
 
 let sanitize_int_format_spec fs type_ =
@@ -66,7 +70,7 @@ let sanitize_float_format_spec fs type_ =
   let grouping_option = fs.grouping_option in
   (* set default precision as 4 *)
   (* TODO this is wrong *)
-  let precision = fs.precision |> Option.value ~default:4 in
+  let precision = fs.precision |> Option.value ~default:6 in
   let upper = fs.upper |> Option.is_some in
   Float_format { type_; fill; sign; grouping_option; precision; upper }
 
@@ -82,8 +86,8 @@ let sanitize_string_format_spec fs =
         (ValueError "Alternate form (#) not allowed in string format specifier")
   in
   let _ =
-    match fill with
-    | Some ({ align = Pad; _ }, _) ->
+    match (fill, fs.zero) with
+    | Some ({ align = Pad; _ }, _), _ | None, Some () ->
         raise
           (ValueError "'=' alignment not allowed in string format specifier")
     | _ -> ()
