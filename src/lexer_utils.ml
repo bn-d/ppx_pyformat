@@ -16,6 +16,12 @@ let parse_fill s =
   let align = s.[1] |> String.make 1 |> match_align in
   make_fill ~char_ align
 
+let parse_sign = function
+  | "+" -> Some Plus
+  | "-" -> Some Minus
+  | " " -> Some Space
+  | u -> raise (ValueError ("Unknown sign '" ^ u ^ "'"))
+
 let parse_width s =
   let zero = if String.get s 0 = '0' then Some () else None in
   let width = Some (int_of_string s) in

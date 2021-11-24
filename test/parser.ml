@@ -1,5 +1,5 @@
 open Ppx_pyformat.Types
-open Test_pyformat_parser_utils
+open Parser_utils
 
 let text_tests =
   let open OUnit2 in
@@ -73,7 +73,7 @@ let conversion_tests =
     >:: test "{!Float.to_string}"
           [ make_field ~conversion:[ "to_string"; "Float" ] (Digit 0) ];
     "invalid_1" >:: test_exc "{!1}" (ValueError "");
-    "invalid_1" >:: test_exc "{!Float.N}" (ValueError "");
+    "invalid_2" >:: test_exc "{!Float.N}" (ValueError "");
   ]
 
 let general_tests =
@@ -94,7 +94,7 @@ let suite =
          "arg" >::: arg_tests;
          "index" >::: index_tests;
          "conversion" >::: conversion_tests;
-         "format_spec" >::: Test_pyformat_parser_format_spec.suite;
+         Parser_format_spec.suite;
          "general" >::: general_tests;
          (* TODO test for invalid ids *)
          (* TODO test for conversion *)

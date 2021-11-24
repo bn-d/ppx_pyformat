@@ -1,65 +1,52 @@
 open Ppx_pyformat.Types
-open Test_pyformat_parser_utils
+open Parser_utils
+
+let arg = Digit 0
 
 let make_fill_tests align =
   let open OUnit2 in
-  let name, c =
+  let name, s =
     match align with
-    | Left -> ("left", '<')
-    | Right -> ("right", '>')
-    | Center -> ("center", '^')
-    | Pad -> ("pad", '=')
+    | Left -> ("left", "<")
+    | Right -> ("right", ">")
+    | Center -> ("center", "^")
+    | Pad -> ("pad", "=")
   in
-  let s = String.make 1 c in
   let fill = make_fill ~char_:' ' align in
   let x_fill = make_fill ~char_:'x' align in
   let common =
     [
       "no_width_1"
-      >:: test
-            ("{:" ^ s ^ "d}")
-            [ make_field ~format_spec:(make_int ()) (Digit 0) ];
+      >:: test ("{:" ^ s ^ "d}") [ make_field ~format_spec:(make_int ()) arg ];
       "no_width_2"
-      >:: test
-            ("{: " ^ s ^ "d}")
-            [ make_field ~format_spec:(make_int ()) (Digit 0) ];
+      >:: test ("{: " ^ s ^ "d}") [ make_field ~format_spec:(make_int ()) arg ];
       "width_1"
       >:: test
             ("{:x" ^ s ^ "1d}")
-            [
-              make_field ~format_spec:(make_int ~fill:(x_fill, 1) ()) (Digit 0);
-            ];
+            [ make_field ~format_spec:(make_int ~fill:(x_fill, 1) ()) arg ];
       "width_2"
       >:: test
             ("{:x" ^ s ^ "16d}")
-            [
-              make_field ~format_spec:(make_int ~fill:(x_fill, 16) ()) (Digit 0);
-            ];
+            [ make_field ~format_spec:(make_int ~fill:(x_fill, 16) ()) arg ];
       "width_3"
       >:: test
             ("{:x" ^ s ^ "256d}")
-            [
-              make_field
-                ~format_spec:(make_int ~fill:(x_fill, 256) ())
-                (Digit 0);
-            ];
+            [ make_field ~format_spec:(make_int ~fill:(x_fill, 256) ()) arg ];
       "default_char"
       >:: test
             ("{:" ^ s ^ "1d}")
-            [ make_field ~format_spec:(make_int ~fill:(fill, 1) ()) (Digit 0) ];
+            [ make_field ~format_spec:(make_int ~fill:(fill, 1) ()) arg ];
       "with_zero"
       >:: test
             ("{:x" ^ s ^ "010d}")
-            [
-              make_field ~format_spec:(make_int ~fill:(x_fill, 10) ()) (Digit 0);
-            ];
+            [ make_field ~format_spec:(make_int ~fill:(x_fill, 10) ()) arg ];
       "left_curl"
       >:: test
             ("{:{" ^ s ^ "1d}")
             [
               make_field
                 ~format_spec:(make_int ~fill:(make_fill ~char_:'{' align, 1) ())
-                (Digit 0);
+                arg;
             ];
       "right_curl"
       >:: test
@@ -67,30 +54,30 @@ let make_fill_tests align =
             [
               make_field
                 ~format_spec:(make_int ~fill:(make_fill ~char_:'}' align, 1) ())
-                (Digit 0);
+                arg;
             ];
-      "tab"
+      "newline"
       >:: test
             ("{:\n" ^ s ^ "1d}")
             [
               make_field
                 ~format_spec:
                   (make_int ~fill:(make_fill ~char_:'\n' align, 1) ())
-                (Digit 0);
+                arg;
             ];
-      "newline"
+      "tab"
       >:: test
             ("{:\t" ^ s ^ "1d}")
             [
               make_field
                 ~format_spec:
                   (make_int ~fill:(make_fill ~char_:'\t' align, 1) ())
-                (Digit 0);
+                arg;
             ];
       "space"
       >:: test
             ("{: " ^ s ^ "1d}")
-            [ make_field ~format_spec:(make_int ~fill:(fill, 1) ()) (Digit 0) ];
+            [ make_field ~format_spec:(make_int ~fill:(fill, 1) ()) arg ];
     ]
   in
   let special =
@@ -98,9 +85,9 @@ let make_fill_tests align =
     | Pad ->
         [
           "simple_zero_int"
-          >:: test "{:0d}" [ make_field ~format_spec:(make_int ()) (Digit 0) ];
+          >:: test "{:0d}" [ make_field ~format_spec:(make_int ()) arg ];
           "simple_zero_float"
-          >:: test "{:0g}" [ make_field ~format_spec:(make_float ()) (Digit 0) ];
+          >:: test "{:0g}" [ make_field ~format_spec:(make_float ()) arg ];
           "invalid_1"
           >:: test_exc "{:0}"
                 (ValueError
@@ -119,9 +106,7 @@ let make_fill_tests align =
           "default_align"
           >:: test "{:10}"
                 [
-                  make_field
-                    ~format_spec:(make_string ~fill:(fill, 10) ())
-                    (Digit 0);
+                  make_field ~format_spec:(make_string ~fill:(fill, 10) ()) arg;
                 ];
         ]
     | _ -> []
@@ -129,13 +114,46 @@ let make_fill_tests align =
   name >::: List.concat [ common; special ]
 
 let fill_tests =
-  [
-    make_fill_tests Left;
-    make_fill_tests Right;
-    make_fill_tests Center;
-    make_fill_tests Pad;
-  ]
+  let open OUnit2 in
+  "fill"
+  >::: [
+         make_fill_tests Left;
+         make_fill_tests Right;
+         make_fill_tests Center;
+         make_fill_tests Pad;
+       ]
+
+let make_sign_tests sign =
+  let open OUnit2 in
+  let name, s =
+    match sign with
+    | Plus -> ("plus", "+")
+    | Minus -> ("minus", "-")
+    | Space -> ("space", " ")
+  in
+  let tests =
+    [
+      "int"
+      >:: test
+            ("{:" ^ s ^ "d}")
+            [ make_field ~format_spec:(make_int ~sign ()) arg ];
+      "float"
+      >:: test
+            ("{:" ^ s ^ "g}")
+            [ make_field ~format_spec:(make_float ~sign ()) arg ];
+      "string"
+      >:: test_exc
+            ("{:" ^ s ^ "}")
+            (ValueError "Sign not allowed in string format specifier");
+    ]
+  in
+  name >::: tests
+
+let sign_tests =
+  let open OUnit2 in
+  "sign"
+  >::: [ make_sign_tests Plus; make_sign_tests Minus; make_sign_tests Space ]
 
 let suite =
   let open OUnit2 in
-  [ "fill" >::: fill_tests ]
+  "format_spec" >::: [ fill_tests; sign_tests ]
