@@ -1,3 +1,5 @@
+exception KeyError of string
+
 exception TypeError of string
 
 exception ValueError of string
@@ -12,11 +14,11 @@ type sign = Plus | Minus | Space
 
 type width = int
 
-type fill = { char_ : char option; align : align }
+type fill = { char_ : char option; align : align [@main] } [@@deriving make]
 
 type grouping_option = Comma | Underscore
 
-type int_type = Binary | Char | Decimal | Oxtal | Hex
+type int_type = Binary | Char | Decimal | Octal | Hex
 
 type float_type = Scientific | Fixed | General | Percentage
 
@@ -47,30 +49,26 @@ type raw_element = Raw_text of string | Raw_field of raw_replacement_field
 
 type raw_elements = raw_element list
 
-type string_format_spec = { fill : (fill * width) option }
-
-type int_format_spec = {
-  type_ : int_type;
-  fill : (fill * width) option;
-  sign : sign option;
-  alternate_form : bool;
-  grouping_option : grouping_option option;
-  upper : bool;
-}
-
-type float_format_spec = {
-  type_ : float_type;
-  fill : (fill * width) option;
-  sign : sign option;
-  grouping_option : grouping_option option;
-  precision : int;
-  upper : bool;
-}
-
 type format_spec =
-  | String_format of string_format_spec
-  | Int_format of int_format_spec
-  | Float_format of float_format_spec
+  | String_format of { fill : (fill * width) option }
+  | Int_format of {
+      type_ : int_type; [@default Decimal]
+      fill : (fill * width) option;
+      sign : sign option;
+      alternate_form : bool; [@default false]
+      grouping_option : grouping_option option;
+      upper : bool; [@default false]
+    }
+  | Float_format of {
+      type_ : float_type; [@default General]
+      fill : (fill * width) option;
+      sign : sign option;
+      grouping_option : grouping_option option;
+      (* TODO not right *)
+      precision : int; [@default 6]
+      upper : bool; [@default false]
+    }
+[@@deriving make]
 
 type replacement_field = {
   arg : arg;

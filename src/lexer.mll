@@ -1,12 +1,9 @@
 {
 open Lexing
+
 open Parser
-
+open Types
 module Utils = Lexer_utils
-
-exception SyntaxError of string
-exception TypeError = Types.TypeError
-exception ValueError = Types.ValueError
 
 let next_line lexbuf =
   let pos = lexbuf.lex_curr_p in
@@ -26,38 +23,38 @@ let module_ = upper word_char* '.'
 let id_ = lower word_char*
 
 rule read = parse
-  | "{" eof { raise (ValueError "single '{' encountered in format string") }
-  | "}" eof { raise (ValueError "single '}' encountered in format string") }
+  | "{" eof { raise (ValueError "Single '{' encountered in format string") }
+  | "}" eof { raise (ValueError "Single '}' encountered in format string") }
   | "{{" { STR "{" }
   | "}}" { STR "}" }
   | '{' {
     read_arg_name lexbuf
   }
-  | not_curl { STR (Lexing.lexeme lexbuf) }
-  | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
+  | not_curl { STR (lexeme lexbuf) }
+  | _ { raise (ValueError ("Unexpected char: " ^ lexeme lexbuf)) }
   | eof { EOF }
 
 and read_arg_name = parse
   | digit+ {
     let _ = Type_utils.set_arg_manual () in
-    let arg = Types.Digit (int_of_string (Lexing.lexeme lexbuf)) in
+    let arg = Digit (int_of_string (lexeme lexbuf)) in
     make_replacement_field arg lexbuf
   }
   | "" { read_identifier [] lexbuf }
 
 and read_identifier acc = parse
   | module_ {
-    let acc = (Lexer_utils.parse_module (Lexing.lexeme lexbuf))::acc in
+    let acc = (Lexer_utils.parse_module (lexeme lexbuf))::acc in
     read_identifier acc lexbuf
   }
   | id_ {
     let _ = Type_utils.set_arg_manual () in
-    let arg = Types.Identifier ((Lexing.lexeme lexbuf)::acc) in
+    let arg = Identifier ((lexeme lexbuf)::acc) in
     make_replacement_field arg lexbuf
   }
   | "" {
     if List.length acc > 0 then
-      raise (SyntaxError "Invalid identifier")
+      raise (KeyError "Invalid identifier")
     else (* if no arg provided, use auto mode *)
       let arg = Type_utils.get_auto_arg () in
       make_replacement_field arg  lexbuf
@@ -65,18 +62,19 @@ and read_identifier acc = parse
 
 and make_replacement_field arg = parse
   | "" {
-    let field = Types.make_raw_replacement_field ~arg () in
+    let field = make_raw_replacement_field ~arg () in
     read_index field lexbuf
   }
 
 and read_index field = parse
   | '[' digit+ ']' {
     let index =
-      Utils.parse_list_index (Lexing.lexeme lexbuf) |> Option.some
+      List_index (Utils.parse_list_index (lexeme lexbuf))
+      |> Option.some
     in
     read_conversion { field with index } lexbuf
   }
-  | '[' _ ']' { raise (TypeError "list indices must be integers")}
+  | '[' not_curl ']' { raise (TypeError "List indices must be integers") }
   | "" { read_conversion field lexbuf }
 
 and read_conversion field = parse
@@ -84,28 +82,91 @@ and read_conversion field = parse
   | "" { read_format_spec field lexbuf }
 
 and read_conversion_id acc field = parse
-  | module_ { read_conversion_id ((Lexing.lexeme lexbuf)::acc) field lexbuf }
+  | module_ {
+    let acc = (Lexer_utils.parse_module (lexeme lexbuf))::acc in
+    read_conversion_id acc field lexbuf
+  }
   | id_ {
-    let conversion = ((Lexing.lexeme lexbuf)::acc) |> Option.some in
+    let conversion = ((lexeme lexbuf)::acc) |> Option.some in
     read_format_spec { field with conversion } lexbuf
   }
   | "" {
-    raise (SyntaxError "Invalid identifier for conversion function")
+    raise (KeyError "Invalid identifier for conversion function")
   }
 
 and read_format_spec field = parse
   | ":" {
-    let format_spec = Types.make_raw_format_spec () in
-    read_align format_spec field lexbuf
+    let format_spec = make_raw_format_spec () in
+    read_fill format_spec field lexbuf
   }
   | "" { read_field_end field lexbuf }
 
-and read_align format_spec field = parse
-  | "}" { FIELD { field with format_spec = Some format_spec} }
-  | _ { raise (SyntaxError "Unmatched curly brace for replacement field") }
+and read_fill format_spec field = parse
+  | _ ['<' '>' '=' '^'] {
+    let fill = Lexer_utils.parse_fill (lexeme lexbuf) |> Option.some in
+    read_sign { format_spec with fill } field lexbuf
+  }
+  (* with no fill char *)
+  | ['<' '>' '=' '^'] {
+    let fill =
+      make_fill (Lexer_utils.match_align (lexeme lexbuf)) |> Option.some
+    in
+    read_sign { format_spec with fill } field lexbuf
+  }
+  | "" { read_sign format_spec field lexbuf }
+
+  (* TODO *)
+and read_sign format_spec field = parse
+  | "" { read_alterhate_form format_spec field lexbuf }
+
+  (* TODO test *)
+and read_alterhate_form format_spec field = parse
+  | '#' {
+    let alternate_form = Some () in
+    read_width { format_spec with alternate_form } field lexbuf
+  }
+  | "" { read_width format_spec field lexbuf }
+
+  (* TODO test *)
+and read_width format_spec field = parse
+  | digit+ {
+    let zero, width = Lexer_utils.parse_width (lexeme lexbuf) in
+    read_grouping_option { format_spec with zero; width } field lexbuf
+  }
+  | "" { read_grouping_option format_spec field lexbuf }
+
+  (* TODO test *)
+and read_grouping_option format_spec field = parse
+  | '_' {
+    let grouping_option = Some Underscore in
+    read_precision { format_spec with grouping_option } field lexbuf
+  }
+  | ',' {
+    let grouping_option = Some Comma in
+    read_precision { format_spec with grouping_option } field lexbuf
+  }
+  | "" { read_precision format_spec field lexbuf }
+
+  (* TODO *)
+and read_precision format_spec field = parse
+  | "" { read_format_type format_spec field lexbuf }
+
+  (* TODO test *)
+and read_format_type format_spec field = parse
+  | ['s' 'b' 'c' 'd' 'o' 'x' 'X' 'e' 'E' 'f' 'F' 'g' 'G' '%'] {
+    let type_, upper = Lexer_utils.parse_type (lexeme lexbuf) in
+    end_format_spec { format_spec with type_; upper } field lexbuf
+  }
+  | "" { end_format_spec format_spec field lexbuf }
+
+and end_format_spec format_spec field = parse
+  | "" {
+    let format_spec = Some format_spec in
+    read_field_end { field with format_spec } lexbuf
+  }
 
 and read_field_end field = parse
   | "}" { FIELD field }
-  | eof { raise (ValueError "expected '}' before end of string") }
-  | _ { raise (ValueError "unmatched '{' in format spec") }
+  | eof { raise (ValueError "Expected '}' before end of string") }
+  | _ { raise (ValueError "Unmatched '{' in format spec") }
 

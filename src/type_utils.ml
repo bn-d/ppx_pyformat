@@ -13,7 +13,7 @@ let set_arg_manual _ =
   | Some (Auto _) ->
       raise
         (ValueError
-           "cannot switch from automatic field numbering to manual field \
+           "Cannot switch from automatic field numbering to manual field \
             specification")
 
 let get_auto_arg _ =
@@ -27,7 +27,7 @@ let get_auto_arg _ =
   | Some Manual ->
       raise
         (ValueError
-           "cannot switch from manual field specification to automatic field \
+           "Cannot switch from manual field specification to automatic field \
             numbering")
 
 (* by default, use string *)
@@ -36,7 +36,7 @@ let default_format_spec = String_format { fill = None }
 let handle_fill fs =
   match (fs.width, fs.fill, fs.zero) with
   (* no width no fill *)
-  | None, _, _ -> None
+  | None, _, _ | Some 0, _, _ -> None
   (* fill will overwrite zero setting *)
   | Some w, Some f, _ -> Some (f, w)
   | Some w, None, Some () ->
@@ -65,6 +65,7 @@ let sanitize_float_format_spec fs type_ =
   let _ = ignore fs.alternate_form in
   let grouping_option = fs.grouping_option in
   (* set default precision as 4 *)
+  (* TODO this is wrong *)
   let precision = fs.precision |> Option.value ~default:4 in
   let upper = fs.upper |> Option.is_some in
   Float_format { type_; fill; sign; grouping_option; precision; upper }
@@ -79,6 +80,13 @@ let sanitize_string_format_spec fs =
     if Option.is_some fs.alternate_form then
       raise
         (ValueError "Alternate form (#) not allowed in string format specifier")
+  in
+  let _ =
+    match fill with
+    | Some ({ align = Pad; _ }, _) ->
+        raise
+          (ValueError "'=' alignment not allowed in string format specifier")
+    | _ -> ()
   in
   let _ =
     if Option.is_some fs.grouping_option then
