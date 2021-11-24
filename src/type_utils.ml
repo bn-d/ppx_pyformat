@@ -66,13 +66,14 @@ let sanitize_int_format_spec fs type_ =
 let sanitize_float_format_spec fs type_ =
   let fill = handle_fill fs in
   let sign = fs.sign in
-  let _ = ignore fs.alternate_form in
+  let alternate_form = fs.alternate_form |> Option.is_some in
   let grouping_option = fs.grouping_option in
   (* set default precision as 4 *)
   (* TODO this is wrong *)
   let precision = fs.precision |> Option.value ~default:6 in
   let upper = fs.upper |> Option.is_some in
-  Float_format { type_; fill; sign; grouping_option; precision; upper }
+  Float_format
+    { type_; fill; sign; alternate_form; grouping_option; precision; upper }
 
 let sanitize_string_format_spec fs =
   let fill = handle_fill fs in

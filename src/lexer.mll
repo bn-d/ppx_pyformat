@@ -118,12 +118,11 @@ and read_fill format_spec field = parse
 and read_sign format_spec field = parse
   | ['+' '-' ' '] {
     let sign = Lexer_utils.parse_sign (lexeme lexbuf) in
-    read_alterhate_form { format_spec with sign } field lexbuf
+    read_alternate_form { format_spec with sign } field lexbuf
   }
-  | "" { read_alterhate_form format_spec field lexbuf }
+  | "" { read_alternate_form format_spec field lexbuf }
 
-  (* TODO test *)
-and read_alterhate_form format_spec field = parse
+and read_alternate_form format_spec field = parse
   | '#' {
     let alternate_form = Some () in
     read_width { format_spec with alternate_form } field lexbuf

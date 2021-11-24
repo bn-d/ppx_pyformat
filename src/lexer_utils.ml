@@ -9,7 +9,7 @@ let match_align = function
   | ">" -> Right
   | "^" -> Center
   | "=" -> Pad
-  | _ -> raise (ValueError "invalid alignment option")
+  | u -> raise (ValueError ("Unknown alignment '" ^ u ^ "'"))
 
 let parse_fill s =
   let char_ = s.[0] in

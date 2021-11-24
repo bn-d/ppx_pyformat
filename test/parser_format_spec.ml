@@ -154,6 +154,23 @@ let sign_tests =
   "sign"
   >::: [ make_sign_tests Plus; make_sign_tests Minus; make_sign_tests Space ]
 
+let alternate_form_tests =
+  let open OUnit2 in
+  let alternate_form = true in
+  "alternate_form"
+  >::: [
+         "int"
+         >:: test "{:#d}"
+               [ make_field ~format_spec:(make_int ~alternate_form ()) arg ];
+         "float"
+         >:: test "{:#g}"
+               [ make_field ~format_spec:(make_float ~alternate_form ()) arg ];
+         "string"
+         >:: test_exc "{:#}"
+               (ValueError
+                  "Alternate form (#) not allowed in string format specifier");
+       ]
+
 let suite =
   let open OUnit2 in
-  "format_spec" >::: [ fill_tests; sign_tests ]
+  "format_spec" >::: [ fill_tests; sign_tests; alternate_form_tests ]

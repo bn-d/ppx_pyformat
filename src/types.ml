@@ -63,6 +63,7 @@ type format_spec =
       type_ : float_type; [@default General]
       fill : (fill * width) option;
       sign : sign option;
+      alternate_form : bool; [@default false]
       grouping_option : grouping_option option;
       (* TODO not right *)
       precision : int; [@default 6]
