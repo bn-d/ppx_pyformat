@@ -277,6 +277,85 @@ let type_tests =
                [ make_field ~format_spec:(make_float ~type_:Percentage ()) arg ];
        ]
 
+let complex_tests =
+  let open OUnit2 in
+  "complex"
+  >::: [
+         "string"
+         >:: test "{:-<010s}"
+               [
+                 make_field
+                   ~format_spec:
+                     (make_string ~fill:(make_fill ~char_:'-' Left, 10) ())
+                   arg;
+               ];
+         "int_1"
+         >:: test "{: #010_o}"
+               [
+                 make_field
+                   ~format_spec:
+                     (make_int
+                        ~fill:(make_fill ~char_:'0' Pad, 10)
+                        ~sign:Space ~alternate_form:true
+                        ~grouping_option:Underscore ~type_:Octal ())
+                   arg;
+               ];
+         "int_2"
+         >:: test "{:>>+21b}"
+               [
+                 make_field
+                   ~format_spec:
+                     (make_int
+                        ~fill:(make_fill ~char_:'>' Right, 21)
+                        ~sign:Plus ~type_:Binary ())
+                   arg;
+               ];
+         "int_3"
+         >:: test "{:.<-32,X}"
+               [
+                 make_field
+                   ~format_spec:
+                     (make_int
+                        ~fill:(make_fill ~char_:'.' Left, 32)
+                        ~sign:Minus ~grouping_option:Comma ~type_:Hex
+                        ~upper:true ())
+                   arg;
+               ];
+         "float_1"
+         >:: test "{: #010_.12f}"
+               [
+                 make_field
+                   ~format_spec:
+                     (make_float
+                        ~fill:(make_fill ~char_:'0' Pad, 10)
+                        ~sign:Space ~alternate_form:true
+                        ~grouping_option:Underscore ~precision:12 ~type_:Fixed
+                        ())
+                   arg;
+               ];
+         "float_2"
+         >:: test "{:>>+21%}"
+               [
+                 make_field
+                   ~format_spec:
+                     (make_float
+                        ~fill:(make_fill ~char_:'>' Right, 21)
+                        ~sign:Plus ~type_:Percentage ())
+                   arg;
+               ];
+         "float_3"
+         >:: test "{:.<-32,.1G}"
+               [
+                 make_field
+                   ~format_spec:
+                     (make_float
+                        ~fill:(make_fill ~char_:'.' Left, 32)
+                        ~sign:Minus ~grouping_option:Comma ~precision:1
+                        ~type_:General ~upper:true ())
+                   arg;
+               ];
+       ]
+
 let suite =
   let open OUnit2 in
   "format_spec"
@@ -287,4 +366,5 @@ let suite =
          grouping_option_tests;
          precision_tests;
          type_tests;
+         complex_tests;
        ]

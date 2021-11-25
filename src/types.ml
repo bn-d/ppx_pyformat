@@ -54,7 +54,7 @@ type format_spec =
   | Int_format of {
       type_ : int_type; [@default Decimal]
       fill : (fill * width) option;
-      sign : sign option;
+      sign : sign; [@default Minus]
       alternate_form : bool; [@default false]
       grouping_option : grouping_option option;
       upper : bool; [@default false]
@@ -62,7 +62,7 @@ type format_spec =
   | Float_format of {
       type_ : float_type; [@default General]
       fill : (fill * width) option;
-      sign : sign option;
+      sign : sign; [@default Minus]
       alternate_form : bool; [@default false]
       grouping_option : grouping_option option;
       (* TODO not right *)

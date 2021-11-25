@@ -72,8 +72,11 @@ let conversion_tests =
     "simple_2"
     >:: test "{!Float.to_string}"
           [ make_field ~conversion:[ "to_string"; "Float" ] (Digit 0) ];
-    "invalid_1" >:: test_exc "{!1}" (ValueError "");
-    "invalid_2" >:: test_exc "{!Float.N}" (ValueError "");
+    "invalid_1"
+    >:: test_exc "{!1}" (KeyError "Invalid identifier for conversion function");
+    "invalid_2"
+    >:: test_exc "{!Float.N}"
+          (KeyError "Invalid identifier for conversion function");
   ]
 
 let general_tests =
@@ -96,8 +99,4 @@ let suite =
          "conversion" >::: conversion_tests;
          Parser_format_spec.suite;
          "general" >::: general_tests;
-         (* TODO test for invalid ids *)
-         (* TODO test for conversion *)
-         (* TODO test for multi id *)
-         (* TODO test for complex id *)
        ]

@@ -53,7 +53,7 @@ let handle_fill fs =
 
 let sanitize_int_format_spec fs type_ =
   let fill = handle_fill fs in
-  let sign = fs.sign in
+  let sign = fs.sign |> Option.value ~default:Minus in
   let alternate_form = fs.alternate_form |> Option.is_some in
   let grouping_option = fs.grouping_option in
   let _ =
@@ -65,7 +65,7 @@ let sanitize_int_format_spec fs type_ =
 
 let sanitize_float_format_spec fs type_ =
   let fill = handle_fill fs in
-  let sign = fs.sign in
+  let sign = fs.sign |> Option.value ~default:Minus in
   let alternate_form = fs.alternate_form |> Option.is_some in
   let grouping_option = fs.grouping_option in
   (* set default precision as 4 *)
