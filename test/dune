@@ -2,4 +2,4 @@
  (name test_pyformat)
  (preprocess
   (pps ppx_pyformat))
- (libraries ounit2))
+ (libraries ounit2 ppx_pyformat))

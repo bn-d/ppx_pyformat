@@ -2,5 +2,10 @@
  (public_name ppx_pyformat)
  (kind ppx_rewriter)
  (preprocess
-  (pps ppxlib.metaquot))
+  (pps ppxlib.metaquot ppx_make))
  (libraries ppxlib))
+
+(menhir
+ (modules parser))
+
+(ocamllex lexer)
