@@ -5,7 +5,8 @@ let parse_module s = String.sub s 0 (String.length s - 1)
 let parse_list_index s =
   String.sub s 1 (String.length s - 2)
   |> int_of_string
-  |> fun i -> List_index i |> Option.some
+  |> (fun i -> List_index i)
+  |> Option.some
 
 let parse_align = function
   | "<" -> Left
@@ -16,8 +17,9 @@ let parse_align = function
 
 let parse_fill s =
   let char_ = s.[0] in
-  let align = s.[1] |> String.make 1 |> parse_align in
-  make_fill ~char_ align
+  String.sub s 1 1 |> parse_align |> make_fill ~char_ |> Option.some
+
+let parse_fill_no_char s = s |> parse_align |> make_fill |> Option.some
 
 let parse_sign = function
   | "+" -> Some Plus
