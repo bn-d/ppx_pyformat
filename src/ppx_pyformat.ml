@@ -1,1 +1,0 @@
-let () = ignore "Hello world"
