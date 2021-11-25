@@ -3,7 +3,6 @@ open Lexing
 
 open Parser
 open Types
-module Utils = Lexer_utils
 
 let next_line lexbuf =
   let pos = lexbuf.lex_curr_p in
@@ -68,10 +67,7 @@ and make_replacement_field arg = parse
 
 and read_index field = parse
   | '[' digit+ ']' {
-    let index =
-      List_index (Utils.parse_list_index (lexeme lexbuf))
-      |> Option.some
-    in
+    let index = Lexer_utils.parse_list_index (lexeme lexbuf) in
     read_conversion { field with index } lexbuf
   }
   | '[' not_curl ']' { raise (TypeError "List indices must be integers") }
@@ -109,7 +105,7 @@ and read_fill format_spec field = parse
   (* with no fill char *)
   | ['<' '>' '=' '^'] {
     let fill =
-      make_fill (Lexer_utils.match_align (lexeme lexbuf)) |> Option.some
+      make_fill (Lexer_utils.parse_align (lexeme lexbuf)) |> Option.some
     in
     read_sign { format_spec with fill } field lexbuf
   }
@@ -136,23 +132,25 @@ and read_width format_spec field = parse
   }
   | "" { read_grouping_option format_spec field lexbuf }
 
-  (* TODO test *)
 and read_grouping_option format_spec field = parse
-  | '_' {
-    let grouping_option = Some Underscore in
-    read_precision { format_spec with grouping_option } field lexbuf
-  }
-  | ',' {
-    let grouping_option = Some Comma in
+  | [',' '_'] {
+    let grouping_option =
+      Lexer_utils.parse_grouping_option (lexeme lexbuf)
+    in
     read_precision { format_spec with grouping_option } field lexbuf
   }
   | "" { read_precision format_spec field lexbuf }
 
-  (* TODO *)
 and read_precision format_spec field = parse
+  | '.' digit+ {
+    let precision = Lexer_utils.pasrse_precision (lexeme lexbuf) in
+    read_format_type { format_spec with precision } field lexbuf
+  }
+  | '.' {
+    raise (ValueError "Format specifier missing precision")
+  }
   | "" { read_format_type format_spec field lexbuf }
 
-  (* TODO test *)
 and read_format_type format_spec field = parse
   | ['s' 'b' 'c' 'd' 'o' 'x' 'X' 'e' 'E' 'f' 'F' 'g' 'G' '%'] {
     let type_, upper = Lexer_utils.parse_type (lexeme lexbuf) in

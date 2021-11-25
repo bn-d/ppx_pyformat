@@ -70,7 +70,7 @@ let sanitize_float_format_spec fs type_ =
   let grouping_option = fs.grouping_option in
   (* set default precision as 4 *)
   (* TODO this is wrong *)
-  let precision = fs.precision |> Option.value ~default:6 in
+  let precision = fs.precision |> Option.value ~default:6 |> max 1 in
   let upper = fs.upper |> Option.is_some in
   Float_format
     { type_; fill; sign; alternate_form; grouping_option; precision; upper }

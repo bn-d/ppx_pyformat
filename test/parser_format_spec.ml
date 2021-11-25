@@ -3,15 +3,8 @@ open Parser_utils
 
 let arg = Digit 0
 
-let make_fill_tests align =
+let make_fill_tests align s =
   let open OUnit2 in
-  let name, s =
-    match align with
-    | Left -> ("left", "<")
-    | Right -> ("right", ">")
-    | Center -> ("center", "^")
-    | Pad -> ("pad", "=")
-  in
   let fill = make_fill ~char_:' ' align in
   let x_fill = make_fill ~char_:'x' align in
   let common =
@@ -84,19 +77,19 @@ let make_fill_tests align =
     match align with
     | Pad ->
         [
-          "simple_zero_int"
+          "zero_int"
           >:: test "{:0d}" [ make_field ~format_spec:(make_int ()) arg ];
-          "simple_zero_float"
+          "zero_float"
           >:: test "{:0g}" [ make_field ~format_spec:(make_float ()) arg ];
-          "invalid_1"
+          "string_1"
           >:: test_exc "{:0}"
                 (ValueError
                    "'=' alignment not allowed in string format specifier");
-          "invalid_2"
+          "string_2"
           >:: test_exc "{:x=10}"
                 (ValueError
                    "'=' alignment not allowed in string format specifier");
-          "invalid_3"
+          "string_3"
           >:: test_exc "{:010}"
                 (ValueError
                    "'=' alignment not allowed in string format specifier");
@@ -111,48 +104,43 @@ let make_fill_tests align =
         ]
     | _ -> []
   in
-  name >::: List.concat [ common; special ]
+  List.concat [ common; special ]
 
 let fill_tests =
   let open OUnit2 in
   "fill"
   >::: [
-         make_fill_tests Left;
-         make_fill_tests Right;
-         make_fill_tests Center;
-         make_fill_tests Pad;
+         "left" >::: make_fill_tests Left "<";
+         "right" >::: make_fill_tests Right ">";
+         "center" >::: make_fill_tests Center "^";
+         "pad" >::: make_fill_tests Pad "=";
        ]
 
-let make_sign_tests sign =
+let make_sign_tests sign s =
   let open OUnit2 in
-  let name, s =
-    match sign with
-    | Plus -> ("plus", "+")
-    | Minus -> ("minus", "-")
-    | Space -> ("space", " ")
-  in
-  let tests =
-    [
-      "int"
-      >:: test
-            ("{:" ^ s ^ "d}")
-            [ make_field ~format_spec:(make_int ~sign ()) arg ];
-      "float"
-      >:: test
-            ("{:" ^ s ^ "g}")
-            [ make_field ~format_spec:(make_float ~sign ()) arg ];
-      "string"
-      >:: test_exc
-            ("{:" ^ s ^ "}")
-            (ValueError "Sign not allowed in string format specifier");
-    ]
-  in
-  name >::: tests
+  [
+    "int"
+    >:: test
+          ("{:" ^ s ^ "d}")
+          [ make_field ~format_spec:(make_int ~sign ()) arg ];
+    "float"
+    >:: test
+          ("{:" ^ s ^ "g}")
+          [ make_field ~format_spec:(make_float ~sign ()) arg ];
+    "string"
+    >:: test_exc
+          ("{:" ^ s ^ "}")
+          (ValueError "Sign not allowed in string format specifier");
+  ]
 
 let sign_tests =
   let open OUnit2 in
   "sign"
-  >::: [ make_sign_tests Plus; make_sign_tests Minus; make_sign_tests Space ]
+  >::: [
+         "plus" >::: make_sign_tests Plus "+";
+         "minus" >::: make_sign_tests Minus "-";
+         "space" >::: make_sign_tests Space " ";
+       ]
 
 let alternate_form_tests =
   let open OUnit2 in
@@ -171,6 +159,132 @@ let alternate_form_tests =
                   "Alternate form (#) not allowed in string format specifier");
        ]
 
+let make_grouping_option_tests grouping_option s =
+  let open OUnit2 in
+  [
+    "int"
+    >:: test
+          ("{:" ^ s ^ "d}")
+          [ make_field ~format_spec:(make_int ~grouping_option ()) arg ];
+    "float"
+    >:: test
+          ("{:" ^ s ^ "g}")
+          [ make_field ~format_spec:(make_float ~grouping_option ()) arg ];
+    "string"
+    >:: test_exc
+          ("{:" ^ s ^ "}")
+          (ValueError "Grouping option not allowed in string format specifier");
+  ]
+
+let grouping_option_tests =
+  let open OUnit2 in
+  "grouping_option"
+  >::: [
+         "comma" >::: make_grouping_option_tests Comma ",";
+         "underscore" >::: make_grouping_option_tests Underscore "_";
+       ]
+
+let precision_tests =
+  let open OUnit2 in
+  "precision"
+  >::: [
+         "float_1"
+         >:: test "{:.0g}"
+               [ make_field ~format_spec:(make_float ~precision:1 ()) arg ];
+         "float_2"
+         >:: test "{:.1g}"
+               [ make_field ~format_spec:(make_float ~precision:1 ()) arg ];
+         "float_3"
+         >:: test "{:.16g}"
+               [ make_field ~format_spec:(make_float ~precision:16 ()) arg ];
+         "float_4"
+         >:: test "{:.256g}"
+               [ make_field ~format_spec:(make_float ~precision:256 ()) arg ];
+         "no_precision"
+         >:: test_exc "{:.g}" (ValueError "Format specifier missing precision");
+         "int"
+         >:: test_exc "{:.1d}"
+               (ValueError "Precision not allowed in integer format specifier");
+         "string"
+         >:: test_exc "{:.1}"
+               (ValueError "Precision not allowed in string format specifier");
+       ]
+
+let type_tests =
+  let open OUnit2 in
+  "type"
+  >::: [
+         "default_1"
+         >:: test "{}" [ make_field ~format_spec:(make_string ()) arg ];
+         "default_2"
+         >:: test "{:}" [ make_field ~format_spec:(make_string ()) arg ];
+         "string"
+         >:: test "{:s}" [ make_field ~format_spec:(make_string ()) arg ];
+         "binary_1"
+         >:: test "{:b}"
+               [ make_field ~format_spec:(make_int ~type_:Binary ()) arg ];
+         "char"
+         >:: test "{:c}"
+               [ make_field ~format_spec:(make_int ~type_:Char ()) arg ];
+         "decimal"
+         >:: test "{:d}"
+               [ make_field ~format_spec:(make_int ~type_:Decimal ()) arg ];
+         "octal"
+         >:: test "{:o}"
+               [ make_field ~format_spec:(make_int ~type_:Octal ()) arg ];
+         "hex"
+         >:: test "{:x}"
+               [ make_field ~format_spec:(make_int ~type_:Hex ()) arg ];
+         "hex_upper"
+         >:: test "{:X}"
+               [
+                 make_field
+                   ~format_spec:(make_int ~type_:Hex ~upper:true ())
+                   arg;
+               ];
+         "scientific"
+         >:: test "{:e}"
+               [ make_field ~format_spec:(make_float ~type_:Scientific ()) arg ];
+         "scientific_upper"
+         >:: test "{:E}"
+               [
+                 make_field
+                   ~format_spec:(make_float ~type_:Scientific ~upper:true ())
+                   arg;
+               ];
+         "fixed"
+         >:: test "{:f}"
+               [ make_field ~format_spec:(make_float ~type_:Fixed ()) arg ];
+         "fixed_upper"
+         >:: test "{:F}"
+               [
+                 make_field
+                   ~format_spec:(make_float ~type_:Fixed ~upper:true ())
+                   arg;
+               ];
+         "general"
+         >:: test "{:g}"
+               [ make_field ~format_spec:(make_float ~type_:General ()) arg ];
+         "general_upper"
+         >:: test "{:G}"
+               [
+                 make_field
+                   ~format_spec:(make_float ~type_:General ~upper:true ())
+                   arg;
+               ];
+         "percentage"
+         >:: test "{:%}"
+               [ make_field ~format_spec:(make_float ~type_:Percentage ()) arg ];
+       ]
+
 let suite =
   let open OUnit2 in
-  "format_spec" >::: [ fill_tests; sign_tests; alternate_form_tests ]
+  "format_spec"
+  >::: [
+         fill_tests;
+         sign_tests;
+         alternate_form_tests;
+         grouping_option_tests;
+         precision_tests;
+         type_tests;
+       ]
