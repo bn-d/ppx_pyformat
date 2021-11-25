@@ -167,5 +167,12 @@ and end_format_spec format_spec field = parse
 and read_field_end field = parse
   | "}" { FIELD field }
   | eof { raise (ValueError "Expected '}' before end of string") }
-  | _ { raise (ValueError "Unmatched '{' in format spec") }
+  | _ {
+    let exc =
+    if Option.is_some field.index || Option.is_some field.conversion || Option.is_some field.format_spec then
+      ValueError "Unmatched '{' in format spec"
+    else ValueError "Invalid specifier"
+    in
+    raise exc
+  }
 
