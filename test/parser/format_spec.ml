@@ -1,5 +1,5 @@
 open Ppx_pyformat.Types
-open Parser_utils
+open Utils
 
 let arg = Digit 0
 

@@ -1,5 +1,5 @@
 open Ppx_pyformat.Types
-open Parser_utils
+open Utils
 
 let text_tests =
   let open OUnit2 in
@@ -133,12 +133,17 @@ let general_tests =
 
 let suite =
   let open OUnit2 in
-  "parser"
+  "test_pyformat_parser"
   >::: [
          text_tests;
          arg_tests;
          index_tests;
          conversion_tests;
-         Parser_format_spec.suite;
+         Format_spec.suite;
          general_tests;
        ]
+
+let _ =
+  let open OUnit2 in
+  run_test_tt_main suite
+
