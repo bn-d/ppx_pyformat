@@ -8,13 +8,13 @@ type arg = Digit of int | Identifier of string list
 
 type index = List_index of int
 
-type align = Left | Right | Pad | Center
+type align = Left | Right | Center | Pad
 
 type sign = Plus | Minus | Space
 
 type width = int
 
-type fill = { char_ : char option; align : align [@main] } [@@deriving make]
+type fill = { align : align; [@main] char_ : char option } [@@deriving make]
 
 type grouping_option = Comma | Underscore
 
