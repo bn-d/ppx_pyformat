@@ -1,8 +1,8 @@
-val align_left : int -> char -> string -> string
+val align_left : char -> int -> string -> string
 
-val align_right : int -> char -> string -> string
+val align_right : char -> int -> string -> string
 
-val align_center : int -> char -> string -> string
+val align_center : char -> int -> string -> string
 
 type align = Left | Right | Center | Pad
 
@@ -12,7 +12,7 @@ type sign = Plus | Minus | Space
 
 type grouping_option = Comma | Underscore
 
-val binary_of_int :
+val format_binary_int :
   ?fill:fill ->
   ?sign:sign ->
   ?alternate_form:bool ->
