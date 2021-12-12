@@ -132,3 +132,39 @@ let int_to_decimal ?fill ?(sign = Minus) ?grouping_option num =
   in
   let num_str = string_of_int (abs num) in
   handle_fill_grouping fill grouping prefix num_str
+
+let string_of_octal_int _num = failwith "no impl"
+
+let int_to_octal
+    ?fill
+    ?(sign = Minus)
+    ?(alternate_form = false)
+    ?(grouping = false)
+    num =
+  let prefix =
+    let sign_str = sign_str_of_int sign num in
+    let af_str = if alternate_form then "0o" else "" in
+    sign_str ^ af_str
+  in
+  let grouping = if grouping then Some ("_", 4) else None in
+  let num_str = string_of_octal_int (abs num) in
+  handle_fill_grouping fill grouping prefix num_str
+
+let string_of_hex_int _num = failwith "no impl"
+
+let int_to_hex
+    ?fill
+    ?(sign = Minus)
+    ?(alternate_form = false)
+    ?(grouping = false)
+    ?(upper = false)
+    num =
+  let prefix =
+    let sign_str = sign_str_of_int sign num in
+    let af_str = if alternate_form then "0x" else "" in
+    sign_str ^ af_str
+  in
+  let grouping = if grouping then Some ("_", 4) else None in
+  let num_str = string_of_hex_int (abs num) in
+  handle_fill_grouping fill grouping prefix num_str
+  |> fun s -> if upper then String.uppercase_ascii s else s

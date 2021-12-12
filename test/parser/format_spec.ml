@@ -1,10 +1,10 @@
+open OUnit2
 open Ppx_pyformat.Types
 open Utils
 
 let arg = Digit 0
 
 let make_fill_tests align s =
-  let open OUnit2 in
   let fill = make_fill ~char_:' ' align in
   let x_fill = make_fill ~char_:'x' align in
   let common =
@@ -107,7 +107,6 @@ let make_fill_tests align s =
   List.concat [ common; special ]
 
 let fill_tests =
-  let open OUnit2 in
   "fill"
   >::: [
          "left" >::: make_fill_tests Left "<";
@@ -117,7 +116,6 @@ let fill_tests =
        ]
 
 let make_sign_tests sign s =
-  let open OUnit2 in
   [
     "int"
     >:: test
@@ -134,7 +132,6 @@ let make_sign_tests sign s =
   ]
 
 let sign_tests =
-  let open OUnit2 in
   "sign"
   >::: [
          "plus" >::: make_sign_tests Plus "+";
@@ -143,7 +140,6 @@ let sign_tests =
        ]
 
 let alternate_form_tests =
-  let open OUnit2 in
   let alternate_form = true in
   "alternate_form"
   >::: [
@@ -160,7 +156,6 @@ let alternate_form_tests =
        ]
 
 let make_grouping_option_tests grouping_option s =
-  let open OUnit2 in
   [
     "int"
     >:: test
@@ -177,7 +172,6 @@ let make_grouping_option_tests grouping_option s =
   ]
 
 let grouping_option_tests =
-  let open OUnit2 in
   "grouping_option"
   >::: [
          "comma" >::: make_grouping_option_tests Comma ",";
@@ -185,7 +179,6 @@ let grouping_option_tests =
        ]
 
 let precision_tests =
-  let open OUnit2 in
   "precision"
   >::: [
          "float_1"
@@ -211,7 +204,6 @@ let precision_tests =
        ]
 
 let type_tests =
-  let open OUnit2 in
   "type"
   >::: [
          "default_1"
@@ -278,7 +270,6 @@ let type_tests =
        ]
 
 let complex_tests =
-  let open OUnit2 in
   "complex"
   >::: [
          "string"
@@ -357,7 +348,6 @@ let complex_tests =
        ]
 
 let suite =
-  let open OUnit2 in
   "format_spec"
   >::: [
          fill_tests;
