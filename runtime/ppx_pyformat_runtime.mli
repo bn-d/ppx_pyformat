@@ -12,7 +12,7 @@ type sign = Plus | Minus | Space
 
 type grouping_option = Comma | Underscore
 
-val format_binary_int :
+val int_to_binary :
   ?fill:fill ->
   ?sign:sign ->
   ?alternate_form:bool ->
@@ -20,11 +20,13 @@ val format_binary_int :
   int ->
   string
 
+val int_to_char : int -> string
+(** Only support ASCII at the moment *)
+
+val int_to_decimal :
+  ?fill:fill -> ?sign:sign -> ?grouping_option:grouping_option -> int -> string
+
 (*
-val char_of_int : ?fill:fill -> int -> string
-
-val decimal_of_int : ?fill:fill -> ?sign:sign -> ?grouping_option:grouping_option -> int -> string
-
 val octal_of_int : ?fill:fill -> ?sign:sign -> ?alternate_form:bool -> ?grouping:bool -> int -> string
 
 val hex_of_int : ?fill:fill -> ?sign:sign -> ?alternate_form:bool -> ?grouping:bool -> ?upper:bool -> int -> string
