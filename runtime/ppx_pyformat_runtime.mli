@@ -34,7 +34,7 @@ val int_to_octal :
   int ->
   string
 
-val int_to_hex :
+val int_to_hexadecimal :
   ?fill:fill ->
   ?sign:sign ->
   ?alternate_form:bool ->

@@ -150,9 +150,9 @@ let int_to_octal
   let num_str = string_of_octal_int (abs num) in
   handle_fill_grouping fill grouping prefix num_str
 
-let string_of_hex_int _num = failwith "no impl"
+let string_of_hex_int num = Printf.sprintf "%x" num
 
-let int_to_hex
+let int_to_hexadecimal
     ?fill
     ?(sign = Minus)
     ?(alternate_form = false)

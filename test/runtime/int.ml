@@ -240,4 +240,95 @@ let suite =
                       (int_to_octal ~fill:(Center, '.', 9) ~sign:Plus
                          ~grouping:true ~alternate_form:true 1);
               ];
+         "hexadecimal"
+         >::: [
+                "simple_1" >:: test "0" (int_to_hexadecimal 0);
+                "simple_2" >:: test "1" (int_to_hexadecimal 1);
+                "simple_3" >:: test "7b" (int_to_hexadecimal 123);
+                "simple_4" >:: test "-7b" (int_to_hexadecimal (-123));
+                "alternate_form_1"
+                >:: test "0x1" (int_to_hexadecimal ~alternate_form:true 1);
+                "alternate_form_2"
+                >:: test "-0x1" (int_to_hexadecimal ~alternate_form:true (-1));
+                "upper"
+                >:: test "0XA"
+                      (int_to_hexadecimal ~alternate_form:true ~upper:true 10);
+                "sign"
+                >::: [
+                       "plus_1" >:: test "+1" (int_to_hexadecimal ~sign:Plus 1);
+                       "plus_2"
+                       >:: test "-1" (int_to_hexadecimal ~sign:Plus (-1));
+                       "plus_3" >:: test "+0" (int_to_hexadecimal ~sign:Plus 0);
+                       "minus_1" >:: test "1" (int_to_hexadecimal ~sign:Minus 1);
+                       "minus_2"
+                       >:: test "-1" (int_to_hexadecimal ~sign:Minus (-1));
+                       "minus_3" >:: test "0" (int_to_hexadecimal ~sign:Minus 0);
+                       "space_1"
+                       >:: test " 1" (int_to_hexadecimal ~sign:Space 1);
+                       "space_2"
+                       >:: test "-1" (int_to_hexadecimal ~sign:Space (-1));
+                       "space_3"
+                       >:: test " 0" (int_to_hexadecimal ~sign:Space 0);
+                     ];
+                "grouping_1" >:: test "0" (int_to_hexadecimal ~grouping:true 0);
+                "grouping_2"
+                >:: test "1000" (int_to_hexadecimal ~grouping:true 4096);
+                "grouping_3"
+                >:: test "1_0000" (int_to_hexadecimal ~grouping:true 65536);
+                "grouping_4"
+                >:: test "100_0000" (int_to_hexadecimal ~grouping:true 16777216);
+                "grouping_5"
+                >:: test "1000_0000"
+                      (int_to_hexadecimal ~grouping:true 268435456);
+                "grouping_6"
+                >:: test "1_0000_0000"
+                      (int_to_hexadecimal ~grouping:true 4294967296);
+                "align"
+                >::: [
+                       "left_1"
+                       >:: test "1...."
+                             (int_to_hexadecimal ~fill:(Left, '.', 5) 1);
+                       "left_2"
+                       >:: test "-1..."
+                             (int_to_hexadecimal ~fill:(Left, '.', 5) (-1));
+                       "right_1"
+                       >:: test "....1"
+                             (int_to_hexadecimal ~fill:(Right, '.', 5) 1);
+                       "right_2"
+                       >:: test "...-1"
+                             (int_to_hexadecimal ~fill:(Right, '.', 5) (-1));
+                       "center_1"
+                       >:: test "..1.."
+                             (int_to_hexadecimal ~fill:(Center, '.', 5) 1);
+                       "center_2"
+                       >:: test ".-1.."
+                             (int_to_hexadecimal ~fill:(Center, '.', 5) (-1));
+                       "pad_1"
+                       >:: test "....1"
+                             (int_to_hexadecimal ~fill:(Pad, '.', 5) 1);
+                       "pad_1"
+                       >:: test "-...1"
+                             (int_to_hexadecimal ~fill:(Pad, '.', 5) (-1));
+                     ];
+                "complex_1"
+                >:: test "+0x0_0001"
+                      (int_to_hexadecimal ~fill:(Pad, '0', 9) ~sign:Plus
+                         ~grouping:true ~alternate_form:true 1);
+                "complex_2"
+                >:: test " 0X0_0001"
+                      (int_to_hexadecimal ~fill:(Pad, '0', 8) ~sign:Space
+                         ~grouping:true ~alternate_form:true ~upper:true 1);
+                "complex_3"
+                >:: test "-0x.....1"
+                      (int_to_hexadecimal ~fill:(Pad, '.', 9) ~sign:Minus
+                         ~grouping:true ~alternate_form:true (-1));
+                "complex_4"
+                >:: test "0x....1"
+                      (int_to_hexadecimal ~fill:(Pad, '.', 7) ~sign:Minus
+                         ~grouping:true ~alternate_form:true 1);
+                "complex_5"
+                >:: test "..+0x1..."
+                      (int_to_hexadecimal ~fill:(Center, '.', 9) ~sign:Plus
+                         ~grouping:true ~alternate_form:true 1);
+              ];
        ]
