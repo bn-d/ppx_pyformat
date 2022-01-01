@@ -1,8 +1,8 @@
+open OUnit2
 open Ppx_pyformat.Types
-open Parser_utils
+open Utils
 
 let text_tests =
-  let open OUnit2 in
   "text"
   >::: [
          "simple" >:: test "123abcABC,.;' \t\n" [ Text "123abcABC,.;' \t\n" ];
@@ -15,7 +15,6 @@ let text_tests =
        ]
 
 let arg_tests =
-  let open OUnit2 in
   "arg"
   >::: [
          "digit_1" >:: test "{0}" [ make_field (Digit 0) ];
@@ -62,7 +61,6 @@ let arg_tests =
        ]
 
 let index_tests =
-  let open OUnit2 in
   "index"
   >::: [
          "simple_1"
@@ -78,7 +76,6 @@ let index_tests =
        ]
 
 let conversion_tests =
-  let open OUnit2 in
   "conversion"
   >::: [
          "simple_1"
@@ -96,7 +93,6 @@ let conversion_tests =
        ]
 
 let general_tests =
-  let open OUnit2 in
   "general"
   >::: [
          "unmatched_1"
@@ -132,13 +128,14 @@ let general_tests =
        ]
 
 let suite =
-  let open OUnit2 in
-  "parser"
+  "test_pyformat_parser"
   >::: [
          text_tests;
          arg_tests;
          index_tests;
          conversion_tests;
-         Parser_format_spec.suite;
+         Format_spec.suite;
          general_tests;
        ]
+
+let _ = run_test_tt_main suite

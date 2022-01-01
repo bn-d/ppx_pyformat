@@ -13,7 +13,7 @@ let make_float = make_float_format_of_format_spec
 
 let test str expected _ =
   Ppx_pyformat.Utils.parse str
-  |> OUnit2.assert_equal ~printer:Utils.string_of_elements expected
+  |> OUnit2.assert_equal ~printer:Printer_utils.string_of_elements expected
 
 let test_exc str exc _ =
   let f _ = Ppx_pyformat.Utils.parse str in

@@ -29,7 +29,7 @@ Format strings contain “replacement fields” surrounded by curly braces `{}`.
 
 The grammar for a replacement field is as follows:
 
-```regex
+```python
 replacement_field ::= "{" [arg_name] ["[" element_index "]"] ["!" conversion] ["!" format_spec] "}"
 ```
 
@@ -48,7 +48,7 @@ The conversion field takes an OCaml function name. The function must only take 1
 
 The general form of a standard format specifier is:
 
-```regex
+```python
 format_spec     ::=  [[fill]align][sign][#][0][width][grouping_option][.precision][type]
 fill            ::=  <any character>
 align           ::=  "<" | ">" | "=" | "^"
@@ -69,5 +69,6 @@ Rest of the format specification should be the same as [that of Python3.10](http
 
 ## Copyright
 Licensed under the [MIT License](LICENSE).
+
 Part of the documentation and string format syntax borrowed from Python is licensed under the [Python Software Founddation License Version 2](https://docs.python.org/3/license.html):
 Copyright © 2001-2021 Python Software Foundation. All rights reserved.
