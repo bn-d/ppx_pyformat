@@ -133,7 +133,7 @@ let int_to_decimal ?fill ?(sign = Minus) ?grouping_option num =
   let num_str = string_of_int (abs num) in
   handle_fill_grouping fill grouping prefix num_str
 
-let string_of_octal_int _num = failwith "no impl"
+let string_of_octal_int num = Printf.sprintf "%o" num
 
 let int_to_octal
     ?fill
