@@ -150,7 +150,7 @@ let int_to_octal
   let num_str = string_of_octal_int (abs num) in
   handle_fill_grouping fill grouping prefix num_str
 
-let string_of_hex_int num = Printf.sprintf "%x" num
+let string_of_hexadecimal_int num = Printf.sprintf "%x" num
 
 let int_to_hexadecimal
     ?fill
@@ -165,6 +165,14 @@ let int_to_hexadecimal
     sign_str ^ af_str
   in
   let grouping = if grouping then Some ("_", 4) else None in
-  let num_str = string_of_hex_int (abs num) in
+  let num_str = string_of_hexadecimal_int (abs num) in
   handle_fill_grouping fill grouping prefix num_str
   |> fun s -> if upper then String.uppercase_ascii s else s
+
+let float_to_scientific _num = failwith "not impl"
+
+let float_to_fixed_point _num = failwith "not impl"
+
+let float_to_general _num = failwith "not impl"
+
+let float_to_percentage _num = failwith "not impl"

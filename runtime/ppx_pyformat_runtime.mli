@@ -43,11 +43,10 @@ val int_to_hexadecimal :
   int ->
   string
 
-(*
-val scientific_of_float
+val float_to_scientific : float -> string
 
-val fixed_point_of_float
+val float_to_fixed_point : float -> string
 
-val general_of_float
+val float_to_general : float -> string
 
-val percentage_of_float*)
+val float_to_percentage : float -> string
