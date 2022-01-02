@@ -65,7 +65,7 @@ type format_spec =
       sign : sign; [@default Minus]
       alternate_form : bool; [@default false]
       grouping_option : grouping_option option;
-      (* TODO not right *)
+      (* TODO the default value is not right *)
       precision : int; [@default 6]
       upper : bool; [@default false]
     }
