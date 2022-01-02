@@ -22,10 +22,10 @@ let arg_tests =
          "digit_3" >:: test "{123}" [ make_field (Digit 123) ];
          "id_1" >:: test "{pi}" [ make_field (Identifier [ "pi" ]) ];
          "id_2"
-         >:: test "{Float.pi}" [ make_field (Identifier [ "pi"; "Float" ]) ];
+         >:: test "{Float.pi}" [ make_field (Identifier [ "Float"; "pi" ]) ];
          "id_3"
          >:: test "{Stdlib.Float.pi}"
-               [ make_field (Identifier [ "pi"; "Float"; "Stdlib" ]) ];
+               [ make_field (Identifier [ "Stdlib"; "Float"; "pi" ]) ];
          "id_4" >:: test "{my_arg}" [ make_field (Identifier [ "my_arg" ]) ];
          "auto_1" >:: test "{}" [ make_field (Digit 0) ];
          "auto_2"
@@ -83,7 +83,7 @@ let conversion_tests =
                [ make_field ~conversion:[ "float_to_string" ] (Digit 0) ];
          "simple_2"
          >:: test "{!Float.to_string}"
-               [ make_field ~conversion:[ "to_string"; "Float" ] (Digit 0) ];
+               [ make_field ~conversion:[ "Float"; "to_string" ] (Digit 0) ];
          "invalid_1"
          >:: test_exc "{!1}"
                (KeyError "Invalid identifier for conversion function");
@@ -105,7 +105,7 @@ let general_tests =
          >:: test "my_date: {my_date!Date.to_string:->9s}\n"
                [
                  Text "my_date: ";
-                 make_field ~conversion:[ "to_string"; "Date" ]
+                 make_field ~conversion:[ "Date"; "to_string" ]
                    ~format_spec:
                      (make_string ~fill:(make_fill ~char_:'-' Right, 9) ())
                    (Identifier [ "my_date" ]);
