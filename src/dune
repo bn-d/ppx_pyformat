@@ -3,7 +3,8 @@
  (kind ppx_rewriter)
  (preprocess
   (pps ppxlib.metaquot ppx_make))
- (libraries ppxlib))
+ (libraries ppxlib)
+ (ppx_runtime_libraries ppx_pyformat_runtime))
 
 (menhir
  (modules parser))
