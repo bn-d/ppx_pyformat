@@ -36,6 +36,61 @@ let conversion_tests =
                 [%pyformat "{f!Float.to_string}"]);
        ]
 
+let fill_tests =
+  "fill"
+  >::: [
+         "left"
+         >:: test "1____"
+               (let b = 1 in
+                [%pyformat "{b:_<5b}"]);
+         "right"
+         >:: test "____1"
+               (let b = 1 in
+                [%pyformat "{b:_>5b}"]);
+         "left"
+         >:: test "__1__"
+               (let b = 1 in
+                [%pyformat "{b:_^5b}"]);
+         "left"
+         >:: test "-___1"
+               (let b = -1 in
+                [%pyformat "{b:_=5b}"]);
+       ]
+
+let sign_tests =
+  "sign"
+  >::: [
+         "plus"
+         >:: test "+1"
+               (let b = 1 in
+                [%pyformat "{b:+b}"]);
+         "minus"
+         >:: test "1"
+               (let b = 1 in
+                [%pyformat "{b:-b}"]);
+         "space"
+         >:: test " 1"
+               (let b = 1 in
+                [%pyformat "{b: b}"]);
+       ]
+
+let format_spec_tests =
+  "format_spec"
+  >::: [
+         fill_tests;
+         sign_tests;
+         "alternate_form"
+         >:: test "0b1"
+               (let b = 1 in
+                [%pyformat "{b:#b}"]);
+         "underscore_grouping"
+         >:: test "1_0000"
+               (let b = 16 in
+                [%pyformat "{b:_b}"]);
+         (*grouping_option_tests;
+           precision_tests;*)
+       ]
+
 let string_tests =
   "string"
   >::: [
@@ -61,8 +116,28 @@ let string_tests =
                 [%pyformat "{l[0]!Fun.id:_^5}"]);
        ]
 
+let int_tests =
+  "int"
+  >::: [
+         "binary_simple"
+         >:: test "1111011"
+               (let b = 123 in
+                [%pyformat "{b:b}"]);
+         "binary_complex"
+         >:: test "_+0b111_1011"
+               (let b = 123 in
+                [%pyformat "{b:_>+#12_b}"]);
+       ]
+
 let suite =
   "test_pyformat_rewriter"
-  >::: [ text_tests; index_tests; conversion_tests; string_tests ]
+  >::: [
+         text_tests;
+         index_tests;
+         conversion_tests;
+         format_spec_tests;
+         string_tests;
+         int_tests;
+       ]
 
 let _ = run_test_tt_main suite
