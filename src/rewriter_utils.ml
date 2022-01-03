@@ -11,6 +11,9 @@ let expr_of_false ~loc : P.expression =
   let open P in
   [%expr false]
 
+let expr_of_bool ~loc b : P.expression =
+  match b with true -> expr_of_true ~loc | false -> expr_of_false ~loc
+
 let expr_of_runtime_fun ~loc fun_name =
   let lid = Longident.Ldot (Lident "Ppx_pyformat_runtime", fun_name) in
   Ast_helper.Exp.ident ~loc P.{ txt = lid; loc }

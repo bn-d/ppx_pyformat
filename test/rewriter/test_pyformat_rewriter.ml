@@ -74,6 +74,19 @@ let sign_tests =
                 [%pyformat "{b: b}"]);
        ]
 
+let grouping_option_tests =
+  "grouping_option"
+  >::: [
+         "comma"
+         >:: test "1,000"
+               (let d = 1000 in
+                [%pyformat "{d:,d}"]);
+         "underscore"
+         >:: test "1_000"
+               (let d = 1000 in
+                [%pyformat "{d:_d}"]);
+       ]
+
 let format_spec_tests =
   "format_spec"
   >::: [
@@ -83,12 +96,16 @@ let format_spec_tests =
          >:: test "0b1"
                (let b = 1 in
                 [%pyformat "{b:#b}"]);
+         grouping_option_tests;
          "underscore_grouping"
          >:: test "1_0000"
                (let b = 16 in
                 [%pyformat "{b:_b}"]);
-         (*grouping_option_tests;
-           precision_tests;*)
+         "upper"
+         >:: test "A"
+               (let x = 10 in
+                [%pyformat "{x:X}"]);
+         (* precision_tests;*)
        ]
 
 let string_tests =
@@ -127,6 +144,38 @@ let int_tests =
          >:: test "_+0b111_1011"
                (let b = 123 in
                 [%pyformat "{b:_>+#12_b}"]);
+         "char_simple"
+         >:: test "a"
+               (let c = 97 in
+                [%pyformat "{c:c}"]);
+         "char_complex"
+         >:: test "__a"
+               (let c = 97 in
+                [%pyformat "{c:_>3c}"]);
+         "decimal_simple"
+         >:: test "1024"
+               (let d = 1024 in
+                [%pyformat "{d:d}"]);
+         "decimal_complex"
+         >:: test "+001,024"
+               (let d = 1024 in
+                [%pyformat "{d:+08,d}"]);
+         "octal_simple"
+         >:: test "30071"
+               (let o = 12345 in
+                [%pyformat "{o:o}"]);
+         "octal_complex"
+         >:: test "_+0o3_0071"
+               (let o = 12345 in
+                [%pyformat "{o:_>+#10_o}"]);
+         "hex_simple"
+         >:: test "1e240"
+               (let x = 123456 in
+                [%pyformat "{x:x}"]);
+         "hex_complex"
+         >:: test "_ 0X1_E240"
+               (let x = 123456 in
+                [%pyformat "{x:_> #10_X}"]);
        ]
 
 let suite =
