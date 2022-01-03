@@ -48,7 +48,7 @@ and read_identifier acc = parse
   }
   | id_ {
     let _ = Type_utils.set_arg_manual () in
-    let arg = Identifier ((lexeme lexbuf)::acc) in
+    let arg = Identifier (List.rev ((lexeme lexbuf)::acc)) in
     make_replacement_field arg lexbuf
   }
   | "" {
@@ -83,7 +83,7 @@ and read_conversion_id acc field = parse
     read_conversion_id acc field lexbuf
   }
   | id_ {
-    let conversion = ((lexeme lexbuf)::acc) |> Option.some in
+    let conversion = (List.rev ((lexeme lexbuf)::acc)) |> Option.some in
     read_format_spec { field with conversion } lexbuf
   }
   | "" {

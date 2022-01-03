@@ -1,0 +1,5 @@
+(test
+ (name test_pyformat_rewriter)
+ (preprocess
+  (pps ppx_pyformat))
+ (libraries ounit2))
