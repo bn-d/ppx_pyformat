@@ -322,6 +322,7 @@ let suite =
                 >:: test "-0x.....1"
                       (int_to_hexadecimal ~fill:(Pad, '.', 9) ~sign:Minus
                          ~grouping:true ~alternate_form:true (-1));
+                (* make sure the fill is not uppercase *)
                 "complex_4"
                 >:: test "0Xaaaa1"
                       (int_to_hexadecimal ~fill:(Pad, 'a', 7) ~sign:Minus

@@ -92,7 +92,7 @@ let handle_fill_grouping fill grouping prefix num_str suffix =
               num_str |> insert_grouping gc gw |> align_right c num_w
           in
           prefix ^ filled_num_str ^ suffix
-      | None -> prefix ^ align_right c num_w num_str)
+      | None -> prefix ^ align_right c num_w num_str ^ suffix)
   | None -> handle_fill align_none () ()
 
 (** handle grouping and fill option for int string *)
