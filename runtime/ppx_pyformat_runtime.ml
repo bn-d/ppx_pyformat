@@ -42,7 +42,13 @@ let sign_str_of_num zero sign num =
 
 let sign_str_of_int = sign_str_of_num 0
 
-let _sign_str_of_float = sign_str_of_num 0.
+let sign_str_of_float = sign_str_of_num 0.
+
+let grouping_config_of_grouping_option grouping_option =
+  match grouping_option with
+  | Some Underscore -> Some ("_", 3)
+  | Some Comma -> Some (",", 3)
+  | None -> None
 
 (** insert grouping separator into string *)
 let insert_grouping separator width str =
@@ -57,21 +63,21 @@ let insert_grouping separator width str =
   if l <= width then str else impl (String.sub str (l - width) width) (l - width)
 
 (** handle grouping and fill option *)
-let handle_fill_grouping fill grouping prefix num_str =
+let handle_fill_grouping fill grouping prefix num_str suffix =
   let handle_fill align_fun c w =
     let grouped_str =
       match grouping with
       | Some (gc, gw) -> insert_grouping gc gw num_str
       | None -> num_str
     in
-    align_fun c w (prefix ^ grouped_str)
+    align_fun c w (prefix ^ grouped_str ^ suffix)
   in
   match fill with
   | Some (Left, c, w) -> handle_fill align_left c w
   | Some (Right, c, w) -> handle_fill align_right c w
   | Some (Center, c, w) -> handle_fill align_center c w
   | Some (Pad, c, w) -> (
-      let num_w = w - String.length prefix in
+      let num_w = w - String.length prefix - String.length suffix in
       match grouping with
       | Some (gc, gw) ->
           let filled_num_str =
@@ -85,9 +91,16 @@ let handle_fill_grouping fill grouping prefix num_str =
             else
               num_str |> insert_grouping gc gw |> align_right c num_w
           in
-          prefix ^ filled_num_str
+          prefix ^ filled_num_str ^ suffix
       | None -> prefix ^ align_right c num_w num_str)
   | None -> handle_fill align_none () ()
+
+(** handle grouping and fill option for int string *)
+let handle_int_fill_grouping fill grouping prefix num_str =
+  handle_fill_grouping fill grouping prefix num_str ""
+
+(** handle upper option *)
+let handle_upper upper str = if upper then String.uppercase_ascii str else str
 
 (** convert int to binary string. only take non-negative number *)
 let string_of_binary_int num =
@@ -110,28 +123,19 @@ let int_to_binary
     ?(alternate_form = false)
     ?(grouping = false)
     num =
-  let prefix =
-    let sign_str = sign_str_of_int sign num in
-    let af_str = if alternate_form then "0b" else "" in
-    sign_str ^ af_str
-  in
+  let prefix = sign_str_of_int sign num ^ if alternate_form then "0b" else "" in
   let grouping = if grouping then Some ("_", 4) else None in
   let num_str = string_of_binary_int (abs num) in
-  handle_fill_grouping fill grouping prefix num_str
+  handle_int_fill_grouping fill grouping prefix num_str
 
 (* since char does not take {Pad}, will dispatch align in rewriter *)
 let int_to_char num = Char.chr num |> String.make 1
 
 let int_to_decimal ?fill ?(sign = Minus) ?grouping_option num =
   let prefix = sign_str_of_int sign num in
-  let grouping =
-    match grouping_option with
-    | Some Underscore -> Some ("_", 3)
-    | Some Comma -> Some (",", 3)
-    | None -> None
-  in
+  let grouping = grouping_config_of_grouping_option grouping_option in
   let num_str = string_of_int (abs num) in
-  handle_fill_grouping fill grouping prefix num_str
+  handle_int_fill_grouping fill grouping prefix num_str
 
 let string_of_octal_int num = Printf.sprintf "%o" num
 
@@ -141,14 +145,10 @@ let int_to_octal
     ?(alternate_form = false)
     ?(grouping = false)
     num =
-  let prefix =
-    let sign_str = sign_str_of_int sign num in
-    let af_str = if alternate_form then "0o" else "" in
-    sign_str ^ af_str
-  in
+  let prefix = sign_str_of_int sign num ^ if alternate_form then "0o" else "" in
   let grouping = if grouping then Some ("_", 4) else None in
   let num_str = string_of_octal_int (abs num) in
-  handle_fill_grouping fill grouping prefix num_str
+  handle_int_fill_grouping fill grouping prefix num_str
 
 let string_of_hexadecimal_int num = Printf.sprintf "%x" num
 
@@ -160,16 +160,31 @@ let int_to_hexadecimal
     ?(upper = false)
     num =
   let prefix =
-    let sign_str = sign_str_of_int sign num in
-    let af_str = if alternate_form then "0x" else "" in
-    sign_str ^ af_str
+    sign_str_of_int sign num
+    ^ if not alternate_form then "" else if upper then "0X" else "0x"
   in
   let grouping = if grouping then Some ("_", 4) else None in
-  let num_str = string_of_hexadecimal_int (abs num) in
-  handle_fill_grouping fill grouping prefix num_str
-  |> fun s -> if upper then String.uppercase_ascii s else s
+  let num_str = abs num |> string_of_hexadecimal_int |> handle_upper upper in
+  handle_int_fill_grouping fill grouping prefix num_str
 
-let float_to_scientific _num = failwith "not impl"
+let string_of_scientific_float ?(precision = 6) num =
+  Printf.sprintf "%.*e" precision num
+
+let float_to_scientific
+    ?fill
+    ?(sign = Minus)
+    ?grouping_option
+    ?(precision = 6)
+    ?(upper = false)
+    num =
+  let prefix = sign_str_of_float sign num in
+  let grouping = grouping_config_of_grouping_option grouping_option in
+  let num_str =
+    Float.abs num |> string_of_scientific_float ~precision |> handle_upper upper
+  in
+  let int_str = String.sub num_str 0 1 in
+  let suffix = String.sub num_str 1 (String.length num_str - 1) in
+  handle_fill_grouping fill grouping prefix int_str suffix
 
 let float_to_fixed_point _num = failwith "not impl"
 

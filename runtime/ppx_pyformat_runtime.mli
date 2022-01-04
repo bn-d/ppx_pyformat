@@ -43,7 +43,14 @@ val int_to_hexadecimal :
   int ->
   string
 
-val float_to_scientific : float -> string
+val float_to_scientific :
+  ?fill:fill ->
+  ?sign:sign ->
+  ?grouping_option:grouping_option ->
+  ?precision:int ->
+  ?upper:bool ->
+  float ->
+  string
 
 val float_to_fixed_point : float -> string
 
