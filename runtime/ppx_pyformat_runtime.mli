@@ -46,14 +46,37 @@ val int_to_hexadecimal :
 val float_to_scientific :
   ?fill:fill ->
   ?sign:sign ->
+  ?alternate_form:bool ->
   ?grouping_option:grouping_option ->
   ?precision:int ->
   ?upper:bool ->
   float ->
   string
 
-val float_to_fixed_point : float -> string
+val float_to_fixed_point :
+  ?fill:fill ->
+  ?sign:sign ->
+  ?alternate_form:bool ->
+  ?grouping_option:grouping_option ->
+  ?precision:int ->
+  ?upper:bool ->
+  float -> string
 
-val float_to_general : float -> string
+val float_to_general :
+  ?fill:fill ->
+  ?sign:sign ->
+  ?alternate_form:bool ->
+  ?grouping_option:grouping_option ->
+  ?precision:int ->
+  ?upper:bool ->
+  float -> string
 
-val float_to_percentage : float -> string
+val float_to_percentage :
+  ?fill:fill ->
+  ?sign:sign ->
+  ?alternate_form:bool ->
+  ?grouping_option:grouping_option ->
+  ?precision:int ->
+  ?upper:bool ->
+  float -> string
+

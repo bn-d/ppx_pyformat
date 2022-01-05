@@ -173,6 +173,7 @@ let string_of_scientific_float ?(precision = 6) num =
 let float_to_scientific
     ?fill
     ?(sign = Minus)
+    ?(alternate_form = false)
     ?grouping_option
     ?(precision = 6)
     ?(upper = false)
@@ -183,11 +184,65 @@ let float_to_scientific
     Float.abs num |> string_of_scientific_float ~precision |> handle_upper upper
   in
   let int_str = String.sub num_str 0 1 in
-  let suffix = String.sub num_str 1 (String.length num_str - 1) in
+  let fac_str = String.sub num_str 1 (String.length num_str - 1) in
+  let suffix =
+    if precision = 0 && alternate_form then
+      "."^fac_str
+    else
+      fac_str
+  in
   handle_fill_grouping fill grouping prefix int_str suffix
 
-let float_to_fixed_point _num = failwith "not impl"
+let string_of_fixed_point_float ?(precision = 6) num =
+  Printf.sprintf "%.*e" precision num
 
-let float_to_general _num = failwith "not impl"
+let float_to_fixed_point_impl
+    ?fill
+    ?(sign = Minus)
+    ?(alternate_form = false)
+    ?grouping_option
+    ?(precision = 6)
+    ?(upper = false)
+    ?(suffix = "")
+    num =
+  let prefix = sign_str_of_float sign num in
+  let grouping = grouping_config_of_grouping_option grouping_option in
+  let num_str =
+    Float.abs num
+    |> string_of_fixed_point_float ~precision
+    |> handle_upper upper
+  in
+  let int_str, fac_str =
+    match String.split_on_char '.' num_str with
+    | [ int_str ] -> (int_str, "")
+    | [ int_str; fac_str ] -> (int_str, fac_str)
+    | _ -> failwith "unexpected number string during format"
+  in
+  let suffix =
+    if precision = 0 && alternate_form then
+      "."^fac_str^suffix
+    else
+      fac_str^suffix
+  in
+  handle_fill_grouping fill grouping prefix int_str suffix
 
-let float_to_percentage _num = failwith "not impl"
+let float_to_fixed_point ?fill ?sign ?alternate_form ?grouping_option ?precision ?upper num =
+  float_to_fixed_point_impl ?fill ?sign ?alternate_form ?grouping_option ?precision ?upper num
+
+let float_to_general
+    ?fill
+    ?(sign = Minus)
+    ?(alternate_form = false)
+    ?grouping_option
+    ?(precision = 6)
+    ?(upper = false)
+    num =
+  (* TODO speical handle for nan etc *)
+  (* TODO no trailing zero *)
+  let _ = ignore (fill, sign, alternate_form, grouping_option, precision, upper, num) in
+  failwith ""
+
+
+let float_to_percentage ?fill ?sign ?alternate_form ?grouping_option ?precision ?upper num =
+  float_to_fixed_point_impl ?fill ?sign ?alternate_form ?grouping_option ?precision ?upper
+    ~suffix:"%" (num *. 100.)
