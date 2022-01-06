@@ -4,16 +4,14 @@ val align_right : char -> int -> string -> string
 
 val align_center : char -> int -> string -> string
 
-type align = Left | Right | Center | Pad
-
-type fill = align * char * int
+type padding_config = char * int
 
 type sign = Plus | Minus | Space
 
 type grouping_option = Comma | Underscore
 
 val int_to_binary :
-  ?fill:fill ->
+  ?padding:padding_config ->
   ?sign:sign ->
   ?alternate_form:bool ->
   ?grouping:bool ->
@@ -24,10 +22,14 @@ val int_to_char : int -> string
 (** Only support ASCII at the moment *)
 
 val int_to_decimal :
-  ?fill:fill -> ?sign:sign -> ?grouping_option:grouping_option -> int -> string
+  ?padding:padding_config ->
+  ?sign:sign ->
+  ?grouping_option:grouping_option ->
+  int ->
+  string
 
 val int_to_octal :
-  ?fill:fill ->
+  ?padding:padding_config ->
   ?sign:sign ->
   ?alternate_form:bool ->
   ?grouping:bool ->
@@ -35,7 +37,7 @@ val int_to_octal :
   string
 
 val int_to_hexadecimal :
-  ?fill:fill ->
+  ?padding:padding_config ->
   ?sign:sign ->
   ?alternate_form:bool ->
   ?grouping:bool ->
@@ -44,7 +46,7 @@ val int_to_hexadecimal :
   string
 
 val float_to_scientific :
-  ?fill:fill ->
+  ?padding:padding_config ->
   ?sign:sign ->
   ?alternate_form:bool ->
   ?grouping_option:grouping_option ->
@@ -54,7 +56,7 @@ val float_to_scientific :
   string
 
 val float_to_fixed_point :
-  ?fill:fill ->
+  ?padding:padding_config ->
   ?sign:sign ->
   ?alternate_form:bool ->
   ?grouping_option:grouping_option ->
@@ -64,7 +66,7 @@ val float_to_fixed_point :
   string
 
 val float_to_general :
-  ?fill:fill ->
+  ?padding:padding_config ->
   ?sign:sign ->
   ?alternate_form:bool ->
   ?grouping_option:grouping_option ->
@@ -74,7 +76,7 @@ val float_to_general :
   string
 
 val float_to_percentage :
-  ?fill:fill ->
+  ?padding:padding_config ->
   ?sign:sign ->
   ?alternate_form:bool ->
   ?grouping_option:grouping_option ->

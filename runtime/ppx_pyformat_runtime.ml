@@ -21,12 +21,7 @@ let align_center c w s =
     let right_l = w - len - left_l in
     String.make left_l c ^ s ^ String.make right_l c
 
-(** fake align function for none *)
-let align_none _ _ s = s
-
-type align = Left | Right | Center | Pad
-
-type fill = align * char * int
+type padding_config = char * int
 
 type sign = Plus | Minus | Space
 
@@ -62,42 +57,30 @@ let insert_grouping separator width str =
   in
   if l <= width then str else impl (String.sub str (l - width) width) (l - width)
 
-(** handle grouping and fill option *)
-let handle_fill_grouping fill grouping prefix num_str suffix =
-  let handle_fill align_fun c w =
-    let grouped_str =
-      match grouping with
-      | Some (gc, gw) -> insert_grouping gc gw num_str
-      | None -> num_str
-    in
-    align_fun c w (prefix ^ grouped_str ^ suffix)
+(** handle grouping and padding option *)
+let handle_padding_grouping padding grouping prefix num_str suffix =
+  let formated =
+    match (padding, grouping) with
+    | Some (c, w), Some (gc, gw) ->
+        let num_w = w - String.length prefix - String.length suffix in
+        (* grouping separator only applied to {0} fill *)
+        if c = '0' then
+          (* max 1 for avoiding _0000 situation, so filling extra 0 *)
+          let act_w = (num_w / (gw + 1) * gw) + max 1 (num_w mod (gw + 1)) in
+          align_right c act_w num_str |> insert_grouping gc gw
+        else
+          num_str |> insert_grouping gc gw |> align_right c num_w
+    | Some (c, w), None ->
+        let num_w = w - String.length prefix - String.length suffix in
+        align_right c num_w num_str
+    | None, Some (gc, gw) -> insert_grouping gc gw num_str
+    | None, None -> num_str
   in
-  match fill with
-  | Some (Left, c, w) -> handle_fill align_left c w
-  | Some (Right, c, w) -> handle_fill align_right c w
-  | Some (Center, c, w) -> handle_fill align_center c w
-  | Some (Pad, c, w) -> (
-      let num_w = w - String.length prefix - String.length suffix in
-      match grouping with
-      | Some (gc, gw) ->
-          let filled_num_str =
-            (* grouping separator only applied to {0} fill *)
-            if c = '0' then
-              (* max 1 for avoiding _0000 situation, so filling extra 0 *)
-              let act_w =
-                (num_w / (gw + 1) * gw) + max 1 (num_w mod (gw + 1))
-              in
-              align_right c act_w num_str |> insert_grouping gc gw
-            else
-              num_str |> insert_grouping gc gw |> align_right c num_w
-          in
-          prefix ^ filled_num_str ^ suffix
-      | None -> prefix ^ align_right c num_w num_str ^ suffix)
-  | None -> handle_fill align_none () ()
+  prefix ^ formated ^ suffix
 
-(** handle grouping and fill option for int string *)
-let handle_int_fill_grouping fill grouping prefix num_str =
-  handle_fill_grouping fill grouping prefix num_str ""
+(** handle grouping and padding option for int string *)
+let handle_int_padding_grouping pad grouping prefix num_str =
+  handle_padding_grouping pad grouping prefix num_str ""
 
 (** handle upper option *)
 let handle_upper upper str = if upper then String.uppercase_ascii str else str
@@ -118,7 +101,7 @@ let string_of_binary_int num =
     impl "" num
 
 let int_to_binary
-    ?fill
+    ?padding
     ?(sign = Minus)
     ?(alternate_form = false)
     ?(grouping = false)
@@ -126,21 +109,21 @@ let int_to_binary
   let prefix = sign_str_of_int sign num ^ if alternate_form then "0b" else "" in
   let grouping = if grouping then Some ("_", 4) else None in
   let num_str = string_of_binary_int (abs num) in
-  handle_int_fill_grouping fill grouping prefix num_str
+  handle_int_padding_grouping padding grouping prefix num_str
 
 (* since char does not take {Pad}, will dispatch align in rewriter *)
 let int_to_char num = Char.chr num |> String.make 1
 
-let int_to_decimal ?fill ?(sign = Minus) ?grouping_option num =
+let int_to_decimal ?padding ?(sign = Minus) ?grouping_option num =
   let prefix = sign_str_of_int sign num in
   let grouping = grouping_config_of_grouping_option grouping_option in
   let num_str = string_of_int (abs num) in
-  handle_int_fill_grouping fill grouping prefix num_str
+  handle_int_padding_grouping padding grouping prefix num_str
 
 let string_of_octal_int num = Printf.sprintf "%o" num
 
 let int_to_octal
-    ?fill
+    ?padding
     ?(sign = Minus)
     ?(alternate_form = false)
     ?(grouping = false)
@@ -148,12 +131,12 @@ let int_to_octal
   let prefix = sign_str_of_int sign num ^ if alternate_form then "0o" else "" in
   let grouping = if grouping then Some ("_", 4) else None in
   let num_str = string_of_octal_int (abs num) in
-  handle_int_fill_grouping fill grouping prefix num_str
+  handle_int_padding_grouping padding grouping prefix num_str
 
 let string_of_hexadecimal_int num = Printf.sprintf "%x" num
 
 let int_to_hexadecimal
-    ?fill
+    ?padding
     ?(sign = Minus)
     ?(alternate_form = false)
     ?(grouping = false)
@@ -165,20 +148,20 @@ let int_to_hexadecimal
   in
   let grouping = if grouping then Some ("_", 4) else None in
   let num_str = abs num |> string_of_hexadecimal_int |> handle_upper upper in
-  handle_int_fill_grouping fill grouping prefix num_str
+  handle_int_padding_grouping padding grouping prefix num_str
 
 let is_special_float num = not (Float.is_finite num)
 
-let handle_special_float ?fill ~sign ~upper ?(suffix = "") num =
+let handle_special_float ?padding ~sign ~upper ?(suffix = "") num =
   let prefix = sign_str_of_float sign num in
   let num_str = Float.abs num |> string_of_float |> handle_upper upper in
-  handle_fill_grouping fill None prefix num_str suffix
+  handle_padding_grouping padding None prefix num_str suffix
 
 let string_of_scientific_float ?(precision = 6) num =
   Printf.sprintf "%.*e" precision num
 
 let float_to_scientific
-    ?fill
+    ?padding
     ?(sign = Minus)
     ?(alternate_form = false)
     ?grouping_option
@@ -186,7 +169,7 @@ let float_to_scientific
     ?(upper = false)
     num =
   if is_special_float num then
-    handle_special_float ?fill ~sign ~upper num
+    handle_special_float ?padding ~sign ~upper num
   else
     let prefix = sign_str_of_float sign num in
     let grouping = grouping_config_of_grouping_option grouping_option in
@@ -203,13 +186,13 @@ let float_to_scientific
       else
         fac_str
     in
-    handle_fill_grouping fill grouping prefix int_str suffix
+    handle_padding_grouping padding grouping prefix int_str suffix
 
 let string_of_fixed_point_float ?(precision = 6) num =
   Printf.sprintf "%.*f" precision num
 
 let float_to_fixed_point_impl
-    ?fill
+    ?padding
     ?(sign = Minus)
     ?(alternate_form = false)
     ?grouping_option
@@ -218,7 +201,7 @@ let float_to_fixed_point_impl
     ?(suffix = "")
     num =
   if is_special_float num then
-    handle_special_float ?fill ~sign ~upper ~suffix num
+    handle_special_float ?padding ~sign ~upper ~suffix num
   else
     let prefix = sign_str_of_float sign num in
     let grouping = grouping_config_of_grouping_option grouping_option in
@@ -239,21 +222,21 @@ let float_to_fixed_point_impl
       else
         fac_str ^ suffix
     in
-    handle_fill_grouping fill grouping prefix int_str suffix
+    handle_padding_grouping padding grouping prefix int_str suffix
 
 let float_to_fixed_point
-    ?fill
+    ?padding
     ?sign
     ?alternate_form
     ?grouping_option
     ?precision
     ?upper
     num =
-  float_to_fixed_point_impl ?fill ?sign ?alternate_form ?grouping_option
+  float_to_fixed_point_impl ?padding ?sign ?alternate_form ?grouping_option
     ?precision ?upper num
 
 let float_to_general
-    ?fill
+    ?padding
     ?(sign = Minus)
     ?(alternate_form = false)
     ?grouping_option
@@ -263,17 +246,18 @@ let float_to_general
   (* TODO speical handle for nan etc *)
   (* TODO no trailing zero *)
   let _ =
-    ignore (fill, sign, alternate_form, grouping_option, precision, upper, num)
+    ignore
+      (padding, sign, alternate_form, grouping_option, precision, upper, num)
   in
   failwith ""
 
 let float_to_percentage
-    ?fill
+    ?padding
     ?sign
     ?alternate_form
     ?grouping_option
     ?precision
     ?upper
     num =
-  float_to_fixed_point_impl ?fill ?sign ?alternate_form ?grouping_option
+  float_to_fixed_point_impl ?padding ?sign ?alternate_form ?grouping_option
     ?precision ?upper ~suffix:"%" (num *. 100.)
