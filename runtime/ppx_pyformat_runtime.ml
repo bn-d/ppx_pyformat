@@ -169,10 +169,10 @@ let int_to_hexadecimal
 
 let is_special_float num = not (Float.is_finite num)
 
-let handle_special_float ?fill ~sign ~upper num =
+let handle_special_float ?fill ~sign ~upper ?(suffix = "") num =
   let prefix = sign_str_of_float sign num in
   let num_str = Float.abs num |> string_of_float |> handle_upper upper in
-  handle_fill_grouping fill None prefix num_str ""
+  handle_fill_grouping fill None prefix num_str suffix
 
 let string_of_scientific_float ?(precision = 6) num =
   Printf.sprintf "%.*e" precision num
@@ -218,7 +218,7 @@ let float_to_fixed_point_impl
     ?(suffix = "")
     num =
   if is_special_float num then
-    handle_special_float ?fill ~sign ~upper num
+    handle_special_float ?fill ~sign ~upper ~suffix num
   else
     let prefix = sign_str_of_float sign num in
     let grouping = grouping_config_of_grouping_option grouping_option in
