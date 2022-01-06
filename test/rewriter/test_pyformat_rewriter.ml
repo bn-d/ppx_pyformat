@@ -136,6 +136,18 @@ let string_tests =
 let int_tests =
   "int"
   >::: [
+         "left"
+         >:: test "123__"
+               (let d = 123 in
+                [%pyformat "{d:_<5d}"]);
+         "right"
+         >:: test "__123"
+               (let d = 123 in
+                [%pyformat "{d:_>5d}"]);
+         "center"
+         >:: test "_123_"
+               (let d = 123 in
+                [%pyformat "{d:_^5d}"]);
          "binary_simple"
          >:: test "1111011"
                (let b = 123 in
