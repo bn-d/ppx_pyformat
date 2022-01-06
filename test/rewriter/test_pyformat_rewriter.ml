@@ -140,42 +140,78 @@ let int_tests =
          >:: test "1111011"
                (let b = 123 in
                 [%pyformat "{b:b}"]);
-         "binary_complex"
-         >:: test "_+0b111_1011"
+         "binary_complex_1"
+         >:: test "_+111_1011"
                (let b = 123 in
-                [%pyformat "{b:_>+#12_b}"]);
+                [%pyformat "{b:_>+10_b}"]);
+         "binary_complex_2"
+         >:: test "-0b....11"
+               (let b = -3 in
+                [%pyformat "{b:.=-#9_b}"]);
+         "binary_complex_3"
+         >:: test "..+0b1..."
+               (let b = 1 in
+                [%pyformat "{b:.^+#9b}"]);
          "char_simple"
          >:: test "a"
                (let c = 97 in
                 [%pyformat "{c:c}"]);
-         "char_complex"
+         "char_complex_1"
          >:: test "__a"
                (let c = 97 in
                 [%pyformat "{c:_>3c}"]);
+         "char_complex_2"
+         >:: test "_{__"
+               (let c = 123 in
+                [%pyformat "{c:_^4c}"]);
          "decimal_simple"
          >:: test "1024"
                (let d = 1024 in
                 [%pyformat "{d:d}"]);
-         "decimal_complex"
-         >:: test "+001,024"
+         "decimal_complex_1"
+         >:: test " 0,001,024"
                (let d = 1024 in
-                [%pyformat "{d:+08,d}"]);
+                [%pyformat "{d: 09,d}"]);
+         "decimal_complex_2"
+         >:: test "+1024....."
+               (let d = 1024 in
+                [%pyformat "{d:.<+10d}"]);
+         "decimal_complex_3"
+         >:: test ".-1_024.."
+               (let d = -1024 in
+                [%pyformat "{d:.^-9_d}"]);
          "octal_simple"
          >:: test "30071"
                (let o = 12345 in
                 [%pyformat "{o:o}"]);
-         "octal_complex"
+         "octal_complex_1"
          >:: test "_+0o3_0071"
                (let o = 12345 in
                 [%pyformat "{o:_>+#10_o}"]);
+         "octal_complex_2"
+         >:: test " 0o030071"
+               (let o = 12345 in
+                [%pyformat "{o: #09o}"]);
+         "octal_complex_3"
+         >:: test ".3_0071."
+               (let o = 12345 in
+                [%pyformat "{o:.^8_o}"]);
          "hex_simple"
          >:: test "1e240"
                (let x = 123456 in
                 [%pyformat "{x:x}"]);
-         "hex_complex"
+         "hex_complex_1"
          >:: test "_ 0X1_E240"
                (let x = 123456 in
                 [%pyformat "{x:_> #10_X}"]);
+         "hex_complex_2"
+         >:: test "+00001e240"
+               (let x = 123456 in
+                [%pyformat "{x:+010x}"]);
+         "hex_complex_3"
+         >:: test "0x1_e240__"
+               (let x = 123456 in
+                [%pyformat "{x:_<-#10_x}"]);
        ]
 
 let suite =
