@@ -60,7 +60,8 @@ val float_to_fixed_point :
   ?grouping_option:grouping_option ->
   ?precision:int ->
   ?upper:bool ->
-  float -> string
+  float ->
+  string
 
 val float_to_general :
   ?fill:fill ->
@@ -69,7 +70,8 @@ val float_to_general :
   ?grouping_option:grouping_option ->
   ?precision:int ->
   ?upper:bool ->
-  float -> string
+  float ->
+  string
 
 val float_to_percentage :
   ?fill:fill ->
@@ -78,5 +80,5 @@ val float_to_percentage :
   ?grouping_option:grouping_option ->
   ?precision:int ->
   ?upper:bool ->
-  float -> string
-
+  float ->
+  string

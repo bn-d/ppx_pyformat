@@ -33,16 +33,16 @@ type sign = Plus | Minus | Space
 type grouping_option = Comma | Underscore
 
 (** get sign string of number *)
-let sign_str_of_num zero sign num =
+let sign_str_of_num is_positive sign num =
   match sign with
-  | Plus when num >= zero -> "+"
-  | Minus when num >= zero -> ""
-  | Space when num >= zero -> " "
+  | Plus when is_positive num -> "+"
+  | Minus when is_positive num -> ""
+  | Space when is_positive num -> " "
   | _ -> "-"
 
-let sign_str_of_int = sign_str_of_num 0
+let sign_str_of_int = sign_str_of_num (fun num -> num >= 0)
 
-let sign_str_of_float = sign_str_of_num 0.
+let sign_str_of_float = sign_str_of_num (fun num -> not (Float.sign_bit num))
 
 let grouping_config_of_grouping_option grouping_option =
   match grouping_option with
@@ -167,6 +167,13 @@ let int_to_hexadecimal
   let num_str = abs num |> string_of_hexadecimal_int |> handle_upper upper in
   handle_int_fill_grouping fill grouping prefix num_str
 
+let is_special_float num = not (Float.is_finite num)
+
+let handle_special_float ?fill ~sign ~upper num =
+  let prefix = sign_str_of_float sign num in
+  let num_str = Float.abs num |> string_of_float |> handle_upper upper in
+  handle_fill_grouping fill None prefix num_str ""
+
 let string_of_scientific_float ?(precision = 6) num =
   Printf.sprintf "%.*e" precision num
 
@@ -178,23 +185,28 @@ let float_to_scientific
     ?(precision = 6)
     ?(upper = false)
     num =
-  let prefix = sign_str_of_float sign num in
-  let grouping = grouping_config_of_grouping_option grouping_option in
-  let num_str =
-    Float.abs num |> string_of_scientific_float ~precision |> handle_upper upper
-  in
-  let int_str = String.sub num_str 0 1 in
-  let fac_str = String.sub num_str 1 (String.length num_str - 1) in
-  let suffix =
-    if precision = 0 && alternate_form then
-      "."^fac_str
-    else
-      fac_str
-  in
-  handle_fill_grouping fill grouping prefix int_str suffix
+  if is_special_float num then
+    handle_special_float ?fill ~sign ~upper num
+  else
+    let prefix = sign_str_of_float sign num in
+    let grouping = grouping_config_of_grouping_option grouping_option in
+    let num_str =
+      Float.abs num
+      |> string_of_scientific_float ~precision
+      |> handle_upper upper
+    in
+    let int_str = String.sub num_str 0 1 in
+    let fac_str = String.sub num_str 1 (String.length num_str - 1) in
+    let suffix =
+      if precision = 0 && alternate_form then
+        "." ^ fac_str
+      else
+        fac_str
+    in
+    handle_fill_grouping fill grouping prefix int_str suffix
 
 let string_of_fixed_point_float ?(precision = 6) num =
-  Printf.sprintf "%.*e" precision num
+  Printf.sprintf "%.*f" precision num
 
 let float_to_fixed_point_impl
     ?fill
@@ -205,29 +217,40 @@ let float_to_fixed_point_impl
     ?(upper = false)
     ?(suffix = "")
     num =
-  let prefix = sign_str_of_float sign num in
-  let grouping = grouping_config_of_grouping_option grouping_option in
-  let num_str =
-    Float.abs num
-    |> string_of_fixed_point_float ~precision
-    |> handle_upper upper
-  in
-  let int_str, fac_str =
-    match String.split_on_char '.' num_str with
-    | [ int_str ] -> (int_str, "")
-    | [ int_str; fac_str ] -> (int_str, fac_str)
-    | _ -> failwith "unexpected number string during format"
-  in
-  let suffix =
-    if precision = 0 && alternate_form then
-      "."^fac_str^suffix
-    else
-      fac_str^suffix
-  in
-  handle_fill_grouping fill grouping prefix int_str suffix
+  if is_special_float num then
+    handle_special_float ?fill ~sign ~upper num
+  else
+    let prefix = sign_str_of_float sign num in
+    let grouping = grouping_config_of_grouping_option grouping_option in
+    let num_str =
+      Float.abs num
+      |> string_of_fixed_point_float ~precision
+      |> handle_upper upper
+    in
+    let int_str, fac_str =
+      match String.split_on_char '.' num_str with
+      | [ int_str ] -> (int_str, "")
+      | [ int_str; fac_str ] -> (int_str, fac_str)
+      | _ -> failwith "unexpected number string during format"
+    in
+    let suffix =
+      if String.length fac_str > 0 || alternate_form then
+        "." ^ fac_str ^ suffix
+      else
+        fac_str ^ suffix
+    in
+    handle_fill_grouping fill grouping prefix int_str suffix
 
-let float_to_fixed_point ?fill ?sign ?alternate_form ?grouping_option ?precision ?upper num =
-  float_to_fixed_point_impl ?fill ?sign ?alternate_form ?grouping_option ?precision ?upper num
+let float_to_fixed_point
+    ?fill
+    ?sign
+    ?alternate_form
+    ?grouping_option
+    ?precision
+    ?upper
+    num =
+  float_to_fixed_point_impl ?fill ?sign ?alternate_form ?grouping_option
+    ?precision ?upper num
 
 let float_to_general
     ?fill
@@ -239,10 +262,18 @@ let float_to_general
     num =
   (* TODO speical handle for nan etc *)
   (* TODO no trailing zero *)
-  let _ = ignore (fill, sign, alternate_form, grouping_option, precision, upper, num) in
+  let _ =
+    ignore (fill, sign, alternate_form, grouping_option, precision, upper, num)
+  in
   failwith ""
 
-
-let float_to_percentage ?fill ?sign ?alternate_form ?grouping_option ?precision ?upper num =
-  float_to_fixed_point_impl ?fill ?sign ?alternate_form ?grouping_option ?precision ?upper
-    ~suffix:"%" (num *. 100.)
+let float_to_percentage
+    ?fill
+    ?sign
+    ?alternate_form
+    ?grouping_option
+    ?precision
+    ?upper
+    num =
+  float_to_fixed_point_impl ?fill ?sign ?alternate_form ?grouping_option
+    ?precision ?upper ~suffix:"%" (num *. 100.)
