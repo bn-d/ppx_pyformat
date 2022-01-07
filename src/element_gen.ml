@@ -35,34 +35,31 @@ let arg_opt_of_alternate_form ~loc alternate_form :
     (P.arg_label * P.expression) option =
   alternate_form
   |> Option.map (fun alternate_form ->
-         let alternate_form_expr = Utils.expr_of_bool ~loc alternate_form in
-         (P.Labelled "alternate_form", alternate_form_expr))
+         (P.Labelled "alternate_form", Utils.expr_of_bool ~loc alternate_form))
 
 let arg_opt_of_grouping_option ~loc grouping_option :
     (P.arg_label * P.expression) option =
-  let label = P.Labelled "grouping_option" in
-  let open P in
-  match grouping_option with
-  | None -> None
-  | Some Comma -> Some (label, [%expr Ppx_pyformat_runtime.Comma])
-  | Some Underscore -> Some (label, [%expr Ppx_pyformat_runtime.Underscore])
+  grouping_option
+  |> Option.map (fun grouping_option ->
+         let open P in
+         let label = Labelled "grouping_option" in
+         match grouping_option with
+         | Comma -> (label, [%expr Ppx_pyformat_runtime.Comma])
+         | Underscore -> (label, [%expr Ppx_pyformat_runtime.Underscore]))
 
 let grouping_of_grouping_option = function
   | Some Underscore -> true
   | _ -> false
 
 let arg_opt_of_grouping ~loc grouping : (P.arg_label * P.expression) option =
-  match grouping with
-  | None -> None
-  | Some grouping ->
-      Some (P.Labelled "grouping", Utils.expr_of_bool ~loc grouping)
+  grouping
+  |> Option.map (fun grouping ->
+         (P.Labelled "grouping", Utils.expr_of_bool ~loc grouping))
 
 let arg_opt_of_upper ~loc upper : (P.arg_label * P.expression) option =
-  match upper with
-  | None -> None
-  | Some upper ->
-      let upper_expr = Utils.expr_of_bool ~loc upper in
-      Some (Labelled "upper", upper_expr)
+  upper
+  |> Option.map (fun upper ->
+         (P.Labelled "upper", Utils.expr_of_bool ~loc upper))
 
 let apply_index ~loc index (expr : P.expression) : P.expression =
   match index with
@@ -95,10 +92,10 @@ let apply_center_align = apply_align "align_center"
 
 let apply_string_format ~loc ~fill (expr : P.expression) : P.expression =
   match fill with
-  | None | Some ({ align = Pad; _ }, _) -> expr
   | Some ({ align = Left; char_ }, w) -> apply_left_align ~loc char_ w expr
   | Some ({ align = Right; char_ }, w) -> apply_right_align ~loc char_ w expr
   | Some ({ align = Center; char_ }, w) -> apply_center_align ~loc char_ w expr
+  | _ -> expr
 
 (** apply functions for binary format *)
 let apply_format_function
