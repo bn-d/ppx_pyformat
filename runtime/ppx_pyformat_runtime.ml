@@ -157,16 +157,49 @@ let handle_special_float ?padding ~sign ~upper ?(suffix = "") num =
   let num_str = Float.abs num |> string_of_float |> handle_upper upper in
   handle_padding_grouping padding None prefix num_str suffix
 
+(** turn string into char list  *)
+let char_list_of_string s =
+  let rec impl i l = if i < 0 then l else impl (i - 1) (s.[i] :: l) in
+  impl (String.length s - 1) []
+
+let remove_trailing_zero ~is_scientific remove_zero str =
+  if (not remove_zero) || not (String.contains str '.') then
+    str
+  else
+    let num_str, suffix =
+      if is_scientific then
+        let len = String.length str in
+        (String.sub str 0 (len - 4), String.sub str (len - 4) 4)
+      else
+        (str, "")
+    in
+    let _, l =
+      List.fold_left
+        (fun (check, l) cur ->
+          if not check then
+            (false, l)
+          else if cur = '0' then
+            (true, l + 1)
+          else if cur = '.' then
+            (false, l + 1)
+          else
+            (false, l))
+        (true, 0)
+        (char_list_of_string num_str |> List.rev)
+    in
+    String.sub num_str 0 (String.length num_str - l) ^ suffix
+
 let string_of_scientific_float ?(precision = 6) num =
   Printf.sprintf "%.*e" precision num
 
-let float_to_scientific
+let float_to_scientific_impl
     ?padding
     ?(sign = Minus)
     ?(alternate_form = false)
     ?grouping_option
     ?(precision = 6)
     ?(upper = false)
+    ~remove_zero
     num =
   if is_special_float num then
     handle_special_float ?padding ~sign ~upper num
@@ -177,6 +210,8 @@ let float_to_scientific
       Float.abs num
       |> string_of_scientific_float ~precision
       |> handle_upper upper
+      |> remove_trailing_zero ~is_scientific:true
+           (remove_zero && not alternate_form)
     in
     let int_str = String.sub num_str 0 1 in
     let fac_str = String.sub num_str 1 (String.length num_str - 1) in
@@ -188,6 +223,8 @@ let float_to_scientific
     in
     handle_padding_grouping padding grouping prefix int_str suffix
 
+let float_to_scientific = float_to_scientific_impl ~remove_zero:false
+
 let string_of_fixed_point_float ?(precision = 6) num =
   Printf.sprintf "%.*f" precision num
 
@@ -198,7 +235,8 @@ let float_to_fixed_point_impl
     ?grouping_option
     ?(precision = 6)
     ?(upper = false)
-    ?(suffix = "")
+    ~suffix
+    ~remove_zero
     num =
   if is_special_float num then
     handle_special_float ?padding ~sign ~upper ~suffix num
@@ -209,12 +247,14 @@ let float_to_fixed_point_impl
       Float.abs num
       |> string_of_fixed_point_float ~precision
       |> handle_upper upper
+      |> remove_trailing_zero ~is_scientific:false
+           (remove_zero && not alternate_form)
     in
     let int_str, fac_str =
       match String.split_on_char '.' num_str with
       | [ int_str ] -> (int_str, "")
       | [ int_str; fac_str ] -> (int_str, fac_str)
-      | _ -> failwith "unexpected number string during format"
+      | _ -> ("", num_str)
     in
     let suffix =
       if String.length fac_str > 0 || alternate_form then
@@ -224,16 +264,8 @@ let float_to_fixed_point_impl
     in
     handle_padding_grouping padding grouping prefix int_str suffix
 
-let float_to_fixed_point
-    ?padding
-    ?sign
-    ?alternate_form
-    ?grouping_option
-    ?precision
-    ?upper
-    num =
-  float_to_fixed_point_impl ?padding ?sign ?alternate_form ?grouping_option
-    ?precision ?upper num
+let float_to_fixed_point =
+  float_to_fixed_point_impl ~suffix:"" ~remove_zero:false
 
 let float_to_general
     ?padding
@@ -243,13 +275,16 @@ let float_to_general
     ?(precision = 6)
     ?(upper = false)
     num =
-  (* TODO speical handle for nan etc *)
-  (* TODO no trailing zero *)
-  let _ =
-    ignore
-      (padding, sign, alternate_form, grouping_option, precision, upper, num)
+  let precision = max precision 1 in
+  let exp = num |> Float.log10 |> Float.floor |> int_of_float in
+  let format_func =
+    if -4 <= exp && exp < precision then
+      float_to_fixed_point_impl ~precision:(precision - 1 - exp) ~suffix:""
+    else
+      float_to_scientific_impl ~precision:(precision - 1)
   in
-  failwith ""
+  format_func ?padding ~sign ~alternate_form ?grouping_option ~upper
+    ~remove_zero:true num
 
 let float_to_percentage
     ?padding
@@ -260,4 +295,4 @@ let float_to_percentage
     ?upper
     num =
   float_to_fixed_point_impl ?padding ?sign ?alternate_form ?grouping_option
-    ?precision ?upper ~suffix:"%" (num *. 100.)
+    ?precision ?upper ~suffix:"%" ~remove_zero:false (num *. 100.)

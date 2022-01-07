@@ -226,6 +226,50 @@ let suite =
                       (float_to_fixed_point ~padding:('0', 10) ~sign:Plus
                          ~precision:2 nan);
               ];
+         "general"
+         >::: [
+                "simple_1"
+                >:: test "1e+06" (float_to_general ~precision:0 1234500.);
+                "simple_2"
+                >:: test "1.2345e+06" (float_to_general ~precision:6 1234500.);
+                "simple_3"
+                >:: test "1234500" (float_to_general ~precision:7 1234500.);
+                "simple_4"
+                >:: test "1234500" (float_to_general ~precision:8 1234500.);
+                "simple_5"
+                >:: test "1e-06" (float_to_general ~precision:0 0.0000012345);
+                "simple_6"
+                >:: test "1.2345e-06"
+                      (float_to_general ~precision:6 0.0000012345);
+                "simple_7"
+                >:: test "0.001" (float_to_general ~precision:0 0.0012345);
+                "simple_8"
+                >:: test "0.00123" (float_to_general ~precision:3 0.0012345);
+                "simple_9"
+                >:: test "0.0012345" (float_to_general ~precision:6 0.0012345);
+                "special_1" >:: test "nan" (float_to_general ~precision:10 nan);
+                "special_2"
+                >:: test "inf" (float_to_general ~precision:10 infinity);
+                "special_3"
+                >:: test "-inf" (float_to_general ~precision:10 neg_infinity);
+                "special_4" >:: test "0" (float_to_general ~precision:10 0.);
+                "special_5" >:: test "-0" (float_to_general ~precision:10 (-0.));
+                "alternate_form"
+                >:: test "1.23450e+06"
+                      (float_to_general ~alternate_form:true ~precision:6
+                         1234500.);
+                "upper"
+                >:: test "1.2345E+06"
+                      (float_to_general ~precision:6 ~upper:true 1234500.);
+                "complex_1"
+                >:: test "+eee1.2345E+06"
+                      (float_to_general ~padding:('e', 14) ~sign:Plus
+                         ~precision:6 ~upper:true 1234500.);
+                "complex_2"
+                >:: test " ..0.00123"
+                      (float_to_general ~padding:('.', 10) ~sign:Space
+                         ~precision:3 0.0012345);
+              ];
          "percentage"
          >::: [
                 "simple_1" >:: test "0.000000%" (float_to_percentage 0.);
