@@ -36,47 +36,24 @@ let suite =
                 >:: test "1000_0000" (int_to_binary ~grouping:true 128);
                 "grouping_6"
                 >:: test "1_0000_0000" (int_to_binary ~grouping:true 256);
-                "align"
-                >::: [
-                       "left_1"
-                       >:: test "1...." (int_to_binary ~fill:(Left, '.', 5) 1);
-                       "left_2"
-                       >:: test "-1..."
-                             (int_to_binary ~fill:(Left, '.', 5) (-1));
-                       "right_1"
-                       >:: test "....1" (int_to_binary ~fill:(Right, '.', 5) 1);
-                       "right_2"
-                       >:: test "...-1"
-                             (int_to_binary ~fill:(Right, '.', 5) (-1));
-                       "center_1"
-                       >:: test "..1.." (int_to_binary ~fill:(Center, '.', 5) 1);
-                       "center_2"
-                       >:: test ".-1.."
-                             (int_to_binary ~fill:(Center, '.', 5) (-1));
-                       "pad_1"
-                       >:: test "....1" (int_to_binary ~fill:(Pad, '.', 5) 1);
-                       "pad_1"
-                       >:: test "-...1" (int_to_binary ~fill:(Pad, '.', 5) (-1));
-                     ];
+                "padding_1" >:: test "....1" (int_to_binary ~padding:('.', 5) 1);
+                "padding_2"
+                >:: test "-...1" (int_to_binary ~padding:('.', 5) (-1));
                 "complex_1"
                 >:: test "+0b0_0001"
-                      (int_to_binary ~fill:(Pad, '0', 9) ~sign:Plus
-                         ~grouping:true ~alternate_form:true 1);
+                      (int_to_binary ~padding:('0', 9) ~sign:Plus ~grouping:true
+                         ~alternate_form:true 1);
                 "complex_2"
                 >:: test " 0b0_0001"
-                      (int_to_binary ~fill:(Pad, '0', 8) ~sign:Space
+                      (int_to_binary ~padding:('0', 8) ~sign:Space
                          ~grouping:true ~alternate_form:true 1);
                 "complex_3"
                 >:: test "-0b.....1"
-                      (int_to_binary ~fill:(Pad, '.', 9) ~sign:Minus
+                      (int_to_binary ~padding:('.', 9) ~sign:Minus
                          ~grouping:true ~alternate_form:true (-1));
                 "complex_4"
                 >:: test "0b....1"
-                      (int_to_binary ~fill:(Pad, '.', 7) ~sign:Minus
-                         ~grouping:true ~alternate_form:true 1);
-                "complex_5"
-                >:: test "..+0b1..."
-                      (int_to_binary ~fill:(Center, '.', 9) ~sign:Plus
+                      (int_to_binary ~padding:('.', 7) ~sign:Minus
                          ~grouping:true ~alternate_form:true 1);
               ];
          "char"
@@ -121,50 +98,26 @@ let suite =
                 "grouping_7"
                 >:: test "1_000_000"
                       (int_to_decimal ~grouping_option:Underscore 1000000);
-                "align"
-                >::: [
-                       "left_1"
-                       >:: test "1...." (int_to_decimal ~fill:(Left, '.', 5) 1);
-                       "left_2"
-                       >:: test "-1..."
-                             (int_to_decimal ~fill:(Left, '.', 5) (-1));
-                       "right_1"
-                       >:: test "....1" (int_to_decimal ~fill:(Right, '.', 5) 1);
-                       "right_2"
-                       >:: test "...-1"
-                             (int_to_decimal ~fill:(Right, '.', 5) (-1));
-                       "center_1"
-                       >:: test "..1.."
-                             (int_to_decimal ~fill:(Center, '.', 5) 1);
-                       "center_2"
-                       >:: test ".-1.."
-                             (int_to_decimal ~fill:(Center, '.', 5) (-1));
-                       "pad_1"
-                       >:: test "....1" (int_to_decimal ~fill:(Pad, '.', 5) 1);
-                       "pad_1"
-                       >:: test "-...1"
-                             (int_to_decimal ~fill:(Pad, '.', 5) (-1));
-                     ];
+                "padding_1"
+                >:: test "....1" (int_to_decimal ~padding:('.', 5) 1);
+                "padding_2"
+                >:: test "-...1" (int_to_decimal ~padding:('.', 5) (-1));
                 "complex_1"
                 >:: test "+0,001"
-                      (int_to_decimal ~fill:(Pad, '0', 6) ~sign:Plus
+                      (int_to_decimal ~padding:('0', 6) ~sign:Plus
                          ~grouping_option:Comma 1);
                 "complex_2"
                 >:: test " 0_001"
-                      (int_to_decimal ~fill:(Pad, '0', 5) ~sign:Space
+                      (int_to_decimal ~padding:('0', 5) ~sign:Space
                          ~grouping_option:Underscore 1);
                 "complex_3"
                 >:: test "-....1"
-                      (int_to_decimal ~fill:(Pad, '.', 6) ~sign:Minus
+                      (int_to_decimal ~padding:('.', 6) ~sign:Minus
                          ~grouping_option:Comma (-1));
                 "complex_4"
                 >:: test "....1"
-                      (int_to_decimal ~fill:(Pad, '.', 5) ~sign:Minus
+                      (int_to_decimal ~padding:('.', 5) ~sign:Minus
                          ~grouping_option:Underscore 1);
-                "complex_5"
-                >:: test "..+1,000..."
-                      (int_to_decimal ~fill:(Center, '.', 11) ~sign:Plus
-                         ~grouping_option:Comma 1000);
               ];
          "octal"
          >::: [
@@ -198,47 +151,25 @@ let suite =
                 >:: test "1000_0000" (int_to_octal ~grouping:true 2097152);
                 "grouping_6"
                 >:: test "1_0000_0000" (int_to_octal ~grouping:true 16777216);
-                "align"
-                >::: [
-                       "left_1"
-                       >:: test "1...." (int_to_octal ~fill:(Left, '.', 5) 1);
-                       "left_2"
-                       >:: test "-1..." (int_to_octal ~fill:(Left, '.', 5) (-1));
-                       "right_1"
-                       >:: test "....1" (int_to_octal ~fill:(Right, '.', 5) 1);
-                       "right_2"
-                       >:: test "...-1"
-                             (int_to_octal ~fill:(Right, '.', 5) (-1));
-                       "center_1"
-                       >:: test "..1.." (int_to_octal ~fill:(Center, '.', 5) 1);
-                       "center_2"
-                       >:: test ".-1.."
-                             (int_to_octal ~fill:(Center, '.', 5) (-1));
-                       "pad_1"
-                       >:: test "....1" (int_to_octal ~fill:(Pad, '.', 5) 1);
-                       "pad_1"
-                       >:: test "-...1" (int_to_octal ~fill:(Pad, '.', 5) (-1));
-                     ];
+                "padding_1" >:: test "....1" (int_to_octal ~padding:('.', 5) 1);
+                "padding_2"
+                >:: test "-...1" (int_to_octal ~padding:('.', 5) (-1));
                 "complex_1"
                 >:: test "+0o0_0001"
-                      (int_to_octal ~fill:(Pad, '0', 9) ~sign:Plus
-                         ~grouping:true ~alternate_form:true 1);
+                      (int_to_octal ~padding:('0', 9) ~sign:Plus ~grouping:true
+                         ~alternate_form:true 1);
                 "complex_2"
                 >:: test " 0o0_0001"
-                      (int_to_octal ~fill:(Pad, '0', 8) ~sign:Space
-                         ~grouping:true ~alternate_form:true 1);
+                      (int_to_octal ~padding:('0', 8) ~sign:Space ~grouping:true
+                         ~alternate_form:true 1);
                 "complex_3"
                 >:: test "-0o.....1"
-                      (int_to_octal ~fill:(Pad, '.', 9) ~sign:Minus
-                         ~grouping:true ~alternate_form:true (-1));
+                      (int_to_octal ~padding:('.', 9) ~sign:Minus ~grouping:true
+                         ~alternate_form:true (-1));
                 "complex_4"
                 >:: test "0o....1"
-                      (int_to_octal ~fill:(Pad, '.', 7) ~sign:Minus
-                         ~grouping:true ~alternate_form:true 1);
-                "complex_5"
-                >:: test "..+0o1..."
-                      (int_to_octal ~fill:(Center, '.', 9) ~sign:Plus
-                         ~grouping:true ~alternate_form:true 1);
+                      (int_to_octal ~padding:('.', 7) ~sign:Minus ~grouping:true
+                         ~alternate_form:true 1);
               ];
          "hexadecimal"
          >::: [
@@ -283,53 +214,26 @@ let suite =
                 "grouping_6"
                 >:: test "1_0000_0000"
                       (int_to_hexadecimal ~grouping:true 4294967296);
-                "align"
-                >::: [
-                       "left_1"
-                       >:: test "1...."
-                             (int_to_hexadecimal ~fill:(Left, '.', 5) 1);
-                       "left_2"
-                       >:: test "-1..."
-                             (int_to_hexadecimal ~fill:(Left, '.', 5) (-1));
-                       "right_1"
-                       >:: test "....1"
-                             (int_to_hexadecimal ~fill:(Right, '.', 5) 1);
-                       "right_2"
-                       >:: test "...-1"
-                             (int_to_hexadecimal ~fill:(Right, '.', 5) (-1));
-                       "center_1"
-                       >:: test "..1.."
-                             (int_to_hexadecimal ~fill:(Center, '.', 5) 1);
-                       "center_2"
-                       >:: test ".-1.."
-                             (int_to_hexadecimal ~fill:(Center, '.', 5) (-1));
-                       "pad_1"
-                       >:: test "....1"
-                             (int_to_hexadecimal ~fill:(Pad, '.', 5) 1);
-                       "pad_1"
-                       >:: test "-...1"
-                             (int_to_hexadecimal ~fill:(Pad, '.', 5) (-1));
-                     ];
+                "padding_1"
+                >:: test "....1" (int_to_hexadecimal ~padding:('.', 5) 1);
+                "padding_2"
+                >:: test "-...1" (int_to_hexadecimal ~padding:('.', 5) (-1));
                 "complex_1"
                 >:: test "+0x0_0001"
-                      (int_to_hexadecimal ~fill:(Pad, '0', 9) ~sign:Plus
+                      (int_to_hexadecimal ~padding:('0', 9) ~sign:Plus
                          ~grouping:true ~alternate_form:true 1);
                 "complex_2"
                 >:: test " 0X0_0001"
-                      (int_to_hexadecimal ~fill:(Pad, '0', 8) ~sign:Space
+                      (int_to_hexadecimal ~padding:('0', 8) ~sign:Space
                          ~grouping:true ~alternate_form:true ~upper:true 1);
                 "complex_3"
                 >:: test "-0x.....1"
-                      (int_to_hexadecimal ~fill:(Pad, '.', 9) ~sign:Minus
+                      (int_to_hexadecimal ~padding:('.', 9) ~sign:Minus
                          ~grouping:true ~alternate_form:true (-1));
-                (* make sure the fill is not uppercase *)
+                (* make sure the padding is not uppercase *)
                 "complex_4"
                 >:: test "0Xaaaa1"
-                      (int_to_hexadecimal ~fill:(Pad, 'a', 7) ~sign:Minus
+                      (int_to_hexadecimal ~padding:('a', 7) ~sign:Minus
                          ~grouping:true ~alternate_form:true ~upper:true 1);
-                "complex_5"
-                >:: test "..+0x1..."
-                      (int_to_hexadecimal ~fill:(Center, '.', 9) ~sign:Plus
-                         ~grouping:true ~alternate_form:true 1);
               ];
        ]
