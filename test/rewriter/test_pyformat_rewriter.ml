@@ -226,6 +226,27 @@ let int_tests =
                 [%pyformat "{x:_<-#10_x}"]);
        ]
 
+let float_tests =
+  "float"
+  >::: [
+         "scientific_simple"
+         >:: test "1.234560e+05"
+               (let e = 123456. in
+                [%pyformat "{e:e}"]);
+         "scientific_complex_1"
+         >:: test "+0_001e+05"
+               (let e = 123456. in
+                [%pyformat "{e:+010_.0e}"]);
+         "scientific_complex_2"
+         >:: test "__-1.235E+05"
+               (let e = -123456. in
+                [%pyformat "{e:_>12.3E}"]);
+         "scientific_complex_3"
+         >:: test " 00,001.e+05"
+               (let e = 123456. in
+                [%pyformat "{e:0= #12,.0e}"]);
+       ]
+
 let suite =
   "test_pyformat_rewriter"
   >::: [
@@ -235,6 +256,7 @@ let suite =
          format_spec_tests;
          string_tests;
          int_tests;
+         float_tests;
        ]
 
 let _ = run_test_tt_main suite

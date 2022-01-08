@@ -35,7 +35,7 @@ let arg_opt_of_alternate_form ~loc alternate_form :
     (P.arg_label * P.expression) option =
   alternate_form
   |> Option.map (fun alternate_form ->
-         (P.Labelled "alternate_form", Utils.expr_of_bool ~loc alternate_form))
+         (P.Labelled "alternate_form", Ast_builder.ebool ~loc alternate_form))
 
 let arg_opt_of_grouping_option ~loc grouping_option :
     (P.arg_label * P.expression) option =
@@ -54,12 +54,17 @@ let grouping_of_grouping_option = function
 let arg_opt_of_grouping ~loc grouping : (P.arg_label * P.expression) option =
   grouping
   |> Option.map (fun grouping ->
-         (P.Labelled "grouping", Utils.expr_of_bool ~loc grouping))
+         (P.Labelled "grouping", Ast_builder.ebool ~loc grouping))
+
+let arg_opt_of_precision ~loc precision : (P.arg_label * P.expression) option =
+  precision
+  |> Option.map (fun precision ->
+         (P.Labelled "precision", Ast_builder.eint ~loc precision))
 
 let arg_opt_of_upper ~loc upper : (P.arg_label * P.expression) option =
   upper
   |> Option.map (fun upper ->
-         (P.Labelled "upper", Utils.expr_of_bool ~loc upper))
+         (P.Labelled "upper", Ast_builder.ebool ~loc upper))
 
 let apply_index ~loc index (expr : P.expression) : P.expression =
   match index with
@@ -106,6 +111,7 @@ let apply_format_function
     ?alternate_form
     ?grouping_option
     ?grouping
+    ?precision
     ?upper
     func_name
     (expr : P.expression) : P.expression =
@@ -115,6 +121,7 @@ let apply_format_function
   let alternate_form_arg = arg_opt_of_alternate_form ~loc alternate_form in
   let grouping_option_arg = arg_opt_of_grouping_option ~loc grouping_option in
   let grouping_arg = arg_opt_of_grouping ~loc grouping in
+  let precision_arg = arg_opt_of_precision ~loc precision in
   let upper_arg = arg_opt_of_upper ~loc upper in
   [
     padding_arg;
@@ -122,6 +129,7 @@ let apply_format_function
     alternate_form_arg;
     grouping_option_arg;
     grouping_arg;
+    precision_arg;
     upper_arg;
     Some (P.Nolabel, expr);
   ]
@@ -159,7 +167,19 @@ let apply_format_spec ~loc format_spec (expr : P.expression) : P.expression =
       let grouping = grouping_of_grouping_option grouping_option in
       apply_format_function ~loc ?fill ?padding ~sign ~alternate_form ~grouping
         ~upper "int_to_hexadecimal" expr
-  | _ -> failwith "not impl"
+  | Float_format
+      { type_; fill; sign; alternate_form; grouping_option; precision; upper }
+    ->
+      let func_name =
+        match type_ with
+        | Scientific -> "float_to_scientific"
+        | Fixed -> "float_to_fixed_point"
+        | General -> "float_to_general"
+        | Percentage -> "float_to_percentage"
+      in
+      let padding = padding_of_fill fill in
+      apply_format_function ~loc ?fill ?padding ~sign ~alternate_form
+        ?grouping_option ~precision ~upper func_name expr
 
 (** generate string expression according to replacement field *)
 let string_expr_of_rfield ~loc (rfield : replacement_field) : P.expression =
