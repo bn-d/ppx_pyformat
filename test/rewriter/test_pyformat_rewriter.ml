@@ -151,6 +151,47 @@ let float_tests =
          >:: test "__ 12.%___" [%pyformat "{p1:_^ #10,.0%}"];
        ]
 
+let arg_tests =
+  let s1 = "hello" and s2 = "world" in
+  "arg"
+  >::: [
+         "simple"
+         >:: test "hello"
+               [%pyformat
+                 "{0}";
+                 s1];
+         "multiple"
+         >:: test "hello world!"
+               [%pyformat
+                 "{0} {1}{2}";
+                 s1;
+                 s2;
+                 "!"];
+         "mixed"
+         >:: test "hello world!"
+               [%pyformat
+                 "{s1} {s2}{0}";
+                 "!"];
+         "auto"
+         >:: test "hello world!"
+               [%pyformat
+                 "{} {}{}";
+                 s1;
+                 s2;
+                 "!"];
+         "duplicated"
+         >:: test "hello hello"
+               [%pyformat
+                 "{0} {0}";
+                 s1];
+         "unused"
+         >:: test "world"
+               [%pyformat
+                 "{1}";
+                 s1;
+                 s2];
+       ]
+
 let suite =
   "test_pyformat_rewriter"
   >::: [
@@ -161,6 +202,7 @@ let suite =
          string_tests;
          int_tests;
          float_tests;
+         arg_tests;
        ]
 
 let _ = run_test_tt_main suite
