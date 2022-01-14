@@ -276,7 +276,7 @@ let float_to_general
     ?(upper = false)
     num =
   let precision = max precision 1 in
-  let exp = num |> Float.log10 |> Float.floor |> int_of_float in
+  let exp = Float.abs num |> Float.log10 |> Float.floor |> int_of_float in
   let format_func =
     if -4 <= exp && exp < precision then
       float_to_fixed_point_impl ~precision:(precision - 1 - exp) ~suffix:""

@@ -183,7 +183,7 @@ let precision_tests =
   >::: [
          "float_1"
          >:: test "{:.0g}"
-               [ make_field ~format_spec:(make_float ~precision:1 ()) arg ];
+               [ make_field ~format_spec:(make_float ~precision:0 ()) arg ];
          "float_2"
          >:: test "{:.1g}"
                [ make_field ~format_spec:(make_float ~precision:1 ()) arg ];
