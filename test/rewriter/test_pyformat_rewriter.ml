@@ -129,7 +129,7 @@ let float_tests =
          >:: test "__-1.235E+05" [%pyformat "{e2:_>12.3E}"];
          "scientific_complex_3"
          >:: test " 00,001.e+05" [%pyformat "{e1:0= #12,.0e}"];
-         "fixed_point_simple" >:: test "123.456000" [%pyformat "{f1:f}"];
+         "fixed_point_simple" >:: test "3.141593" [%pyformat "{Float.pi:f}"];
          "fixed_point_special" >:: test "nan" [%pyformat "{nan:f}"];
          "fixed_point_complex_1"
          >:: test "+0_000_123" [%pyformat "{f1:+010_.0f}"];

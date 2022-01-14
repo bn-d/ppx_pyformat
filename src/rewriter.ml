@@ -1,4 +1,3 @@
-module RUtils = Rewriter_utils
 module P = Ppxlib
 module Ast_helper = Ppxlib.Ast_helper
 
@@ -9,20 +8,30 @@ let rec unwrap_args (expr : P.expression) : P.expression list =
   | Pexp_sequence (hd, tl) -> hd :: unwrap_args tl
   | _ -> [ expr ]
 
+let validate_positional_args ~loc ~length elements =
+  let _ = List.iter (function
+    | Types.Field {arg = Digit idx ;_} -> if idx < length then () else
+      P.Location.raise_errorf ~loc
+        "Replacement index %d out of range for positional args sequence" idx
+    | _ -> ()) elements in
+  elements
+
 let value_binding_of_arg index (expr : P.expression) : P.value_binding =
   let loc = expr.pexp_loc in
   let pat =
     index
-    |> RUtils.get_arg_name
+    |> Utils.get_arg_name
     |> (fun txt -> P.{ txt; loc })
     |> Ast_helper.Pat.var ~loc
   in
   Ast_helper.Vb.mk ~loc pat expr
 
 let generate_format_expr ~loc ?(args = []) (str : string) : P.expression =
+  (* TODO args valudation *)
   let str_expr =
     str
     |> Utils.parse
+    |> validate_positional_args ~loc ~length:(List.length args)
     |> List.map (Element_gen.string_expr_of_element ~loc)
     |> fun exprs ->
     match exprs with

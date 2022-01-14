@@ -1,11 +1,23 @@
 open Types
-module Utils = Rewriter_utils
 module P = Ppxlib
 module Ast_builder = Ppxlib.Ast_builder.Default
 module Ast_helper = Ppxlib.Ast_helper
 
 let expr_of_char_opt ~loc char_ : P.expression =
   char_ |> Option.value ~default:' ' |> Ast_builder.echar ~loc
+
+let expr_of_runtime_fun ~loc fun_name =
+  let lid = Longident.Ldot (Lident "Ppx_pyformat_runtime", fun_name) in
+  Ast_helper.Exp.ident ~loc P.{ txt = lid; loc }
+
+let expr_of_ids ~loc ids : P.expression =
+  match ids with
+  | [] -> P.Location.raise_errorf ~loc "the identifier list cannot be empty"
+  | hd :: tl ->
+      List.fold_left
+        (fun acc cur -> Longident.Ldot (acc, cur))
+        (Longident.Lident hd) tl
+      |> fun lid -> P.{ txt = lid; loc } |> Ast_helper.Exp.ident ~loc
 
 let padding_of_fill = function
   | Some ({ align = Pad; char_ }, width) -> Some (char_, width)
@@ -78,12 +90,12 @@ let apply_conversion ~loc conversion (expr : P.expression) : P.expression =
   match conversion with
   | None -> expr
   | Some ids ->
-      let fun_expr = Utils.expr_of_ids ~loc ids in
+      let fun_expr = expr_of_ids ~loc ids in
       let open P in
       [%expr [%e fun_expr] [%e expr]]
 
 let apply_align ~loc fun_name char_ width (expr : P.expression) : P.expression =
-  let func_expr = Utils.expr_of_runtime_fun ~loc fun_name in
+  let func_expr = expr_of_runtime_fun ~loc fun_name in
   let char_expr = expr_of_char_opt ~loc char_ in
   let width_expr = Ast_builder.eint ~loc width in
   let open P in
@@ -115,7 +127,7 @@ let apply_format_function
     ?upper
     func_name
     (expr : P.expression) : P.expression =
-  let fun_expr = Utils.expr_of_runtime_fun ~loc func_name in
+  let fun_expr = expr_of_runtime_fun ~loc func_name in
   let padding_arg = arg_opt_of_padding ~loc padding in
   let sign_arg = arg_opt_of_sign ~loc sign in
   let alternate_form_arg = arg_opt_of_alternate_form ~loc alternate_form in
@@ -186,7 +198,7 @@ let string_expr_of_rfield ~loc (rfield : replacement_field) : P.expression =
   (match rfield.arg with
   | Digit idx -> [ Utils.get_arg_name idx ]
   | Identifier ids -> ids)
-  |> Utils.expr_of_ids ~loc
+  |> expr_of_ids ~loc
   |> apply_index ~loc rfield.index
   |> apply_conversion ~loc rfield.conversion
   |> apply_format_spec ~loc rfield.format_spec
