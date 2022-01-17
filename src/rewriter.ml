@@ -9,11 +9,19 @@ let rec unwrap_args (expr : P.expression) : P.expression list =
   | _ -> [ expr ]
 
 let validate_positional_args ~loc ~length elements =
-  let _ = List.iter (function
-    | Types.Field {arg = Digit idx ;_} -> if idx < length then () else
-      P.Location.raise_errorf ~loc
-        "Replacement index %d out of range for positional args sequence" idx
-    | _ -> ()) elements in
+  let _ =
+    List.iter
+      (function
+        | Types.Field { arg = Digit idx; _ } ->
+            if idx < length then
+              ()
+            else
+              P.Location.raise_errorf ~loc
+                "Replacement index %d out of range for positional args sequence"
+                idx
+        | _ -> ())
+      elements
+  in
   elements
 
 let value_binding_of_arg index (expr : P.expression) : P.value_binding =

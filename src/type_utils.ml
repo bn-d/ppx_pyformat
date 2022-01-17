@@ -33,77 +33,66 @@ let get_auto_arg _ =
 (* by default, use string *)
 let default_format_spec = String_format { fill = None }
 
-let default_char = Some ' '
-
-let handle_fill fs =
-  match (fs.width, fs.fill, fs.zero) with
+let handle_fill ~default align char_ zero width =
+  let char_ = Option.value ~default:' ' char_ in
+  match (width, align, zero) with
   (* no width no fill *)
   | None, _, _ | Some 0, _, _ -> None
   (* fill will overwrite zero setting *)
-  | Some w, Some f, _ ->
-      let char_ = match f.char_ with None -> default_char | c -> c in
-      Some ({ f with char_ }, w)
-  | Some w, None, Some () ->
-      let f = { char_ = Some '0'; align = Pad } in
-      Some (f, w)
-  (* by default, align right fill with space *)
-  | Some w, None, None ->
-      let f = { char_ = default_char; align = Right } in
-      Some (f, w)
+  | Some width, Some align, _ -> Some (make_fill ~char_ ~width align)
+  | Some width, None, Some () -> Some (make_fill ~char_:'0' ~width Pad)
+  | Some width, None, None -> Some (make_fill ~char_ ~width default)
 
-let sanitize_int_format_spec fs type_ =
-  let fill = handle_fill fs in
-  let sign = fs.sign |> Option.value ~default:Minus in
-  let alternate_form = fs.alternate_form |> Option.is_some in
-  let grouping_option = fs.grouping_option in
-  let _ =
-    if Option.is_some fs.precision then
-      raise (ValueError "Precision not allowed in integer format specifier")
+let sanitize_int_format_spec raw type_ =
+  (match (raw.grouping_option, type_) with
+  | Some Comma, Binary | Some Comma, Octal | Some Comma, Hex ->
+      raise (ValueError "Cannot specify ',' with 'b', 'o', 'x' or 'X'")
+  | _, _ -> ());
+  if Option.is_some raw.precision then
+    raise (ValueError "Precision not allowed in integer format specifier");
+  (* actual mapping *)
+  let fill =
+    handle_fill ~default:Right raw.align raw.char_ raw.zero raw.width
   in
-  let upper = fs.upper |> Option.is_some in
+  let sign = Option.value ~default:Minus raw.sign in
+  let alternate_form = Option.is_some raw.alternate_form in
+  let grouping_option = raw.grouping_option in
+  let upper = Option.is_some raw.upper in
   Int_format { type_; fill; sign; alternate_form; grouping_option; upper }
 
-let sanitize_float_format_spec fs type_ =
-  let fill = handle_fill fs in
-  let sign = fs.sign |> Option.value ~default:Minus in
-  let alternate_form = fs.alternate_form |> Option.is_some in
-  let grouping_option = fs.grouping_option in
-  let precision = fs.precision |> Option.value ~default:6 |> max 0 in
-  let upper = fs.upper |> Option.is_some in
+let sanitize_float_format_spec raw type_ =
+  let fill =
+    handle_fill ~default:Right raw.align raw.char_ raw.zero raw.width
+  in
+  let sign = Option.value ~default:Minus raw.sign in
+  let alternate_form = Option.is_some raw.alternate_form in
+  let grouping_option = raw.grouping_option in
+  let precision = Option.value ~default:6 raw.precision |> max 0 in
+  let upper = Option.is_some raw.upper in
   Float_format
     { type_; fill; sign; alternate_form; grouping_option; precision; upper }
 
-let sanitize_string_format_spec fs =
-  let fill = handle_fill fs in
-  let _ =
-    if Option.is_some fs.sign then
-      raise (ValueError "Sign not allowed in string format specifier")
-  in
-  let _ =
-    if Option.is_some fs.alternate_form then
-      raise
-        (ValueError "Alternate form (#) not allowed in string format specifier")
-  in
-  let _ =
-    match (fill, fs.zero) with
-    | Some ({ align = Pad; _ }, _), _ | None, Some () ->
-        raise
-          (ValueError "'=' alignment not allowed in string format specifier")
-    | _ -> ()
-  in
-  let _ =
-    if Option.is_some fs.grouping_option then
-      raise
-        (ValueError "Grouping option not allowed in string format specifier")
-  in
-  let _ =
-    if Option.is_some fs.precision then
-      raise (ValueError "Precision not allowed in string format specifier")
-  in
-  let _ =
-    if Option.is_some fs.upper then
-      raise (ValueError "Upper not allowed in string format specifier")
-  in
+let sanitize_string_format_spec raw =
+  if raw.sign = Some Space then
+    raise (ValueError "Space not allowed in string format specifier");
+  if Option.is_some raw.sign then
+    raise (ValueError "Sign not allowed in string format specifier");
+  if Option.is_some raw.alternate_form then
+    raise
+      (ValueError "Alternate form (#) not allowed in string format specifier");
+  if
+    (Option.is_some raw.align && Option.get raw.align = Pad)
+    || (Option.is_none raw.align && Option.is_some raw.zero)
+  then
+    raise (ValueError "'=' alignment not allowed in string format specifier");
+  if Option.is_some raw.grouping_option then
+    raise (ValueError "Grouping option not allowed in string format specifier");
+  if Option.is_some raw.precision then
+    raise (ValueError "Precision not allowed in string format specifier");
+  if Option.is_some raw.upper then
+    raise (ValueError "Upper not allowed in string format specifier");
+  (* actual mapping *)
+  let fill = handle_fill ~default:Left raw.align raw.char_ None raw.width in
   String_format { fill }
 
 let sanitize_field (raw : raw_replacement_field) : replacement_field =

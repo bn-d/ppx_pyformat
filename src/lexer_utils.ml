@@ -16,10 +16,10 @@ let parse_align = function
   | u -> raise (ValueError ("Unknown alignment '" ^ u ^ "'"))
 
 let parse_fill s =
-  let char_ = s.[0] in
-  String.sub s 1 1 |> parse_align |> make_fill ~char_ |> Option.some
-
-let parse_fill_no_char s = s |> parse_align |> make_fill |> Option.some
+  match String.length s with
+  | 1 -> (Some (parse_align s), None)
+  | 2 -> (Some (parse_align (String.sub s 1 1)), Some s.[0])
+  | _ -> raise (ValueError "Unexpected alignment string")
 
 let parse_sign = function
   | "+" -> Some Plus

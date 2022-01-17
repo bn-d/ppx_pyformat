@@ -6,15 +6,11 @@ let string_of_align = function
   | Center -> "Center"
   | Pad -> "Pad"
 
-let string_of_fill = function
+let string_of_fill (fill : fill option) =
+  match fill with
   | None -> ""
-  | Some ({ char_; align }, width) ->
-      let char_str =
-        if Option.is_some char_ then
-          char_ |> Option.get |> String.make 1
-        else
-          ""
-      in
+  | Some { align; char_; width } ->
+      let char_str = String.make 1 char_ in
       let align_str = string_of_align align in
       let width_str = string_of_int width in
       Printf.sprintf "({char_='%s'; align=%s}, %s)" char_str align_str width_str

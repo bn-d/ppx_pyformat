@@ -16,29 +16,40 @@ let make_fill_tests align s =
       "width_1"
       >:: test
             ("{:x" ^ s ^ "1d}")
-            [ make_field ~format_spec:(make_int ~fill:(x_fill, 1) ()) arg ];
+            [
+              make_field ~format_spec:(make_int ~fill:(x_fill ~width:1) ()) arg;
+            ];
       "width_2"
       >:: test
             ("{:x" ^ s ^ "16d}")
-            [ make_field ~format_spec:(make_int ~fill:(x_fill, 16) ()) arg ];
+            [
+              make_field ~format_spec:(make_int ~fill:(x_fill ~width:16) ()) arg;
+            ];
       "width_3"
       >:: test
             ("{:x" ^ s ^ "256d}")
-            [ make_field ~format_spec:(make_int ~fill:(x_fill, 256) ()) arg ];
+            [
+              make_field
+                ~format_spec:(make_int ~fill:(x_fill ~width:256) ())
+                arg;
+            ];
       "default_char"
       >:: test
             ("{:" ^ s ^ "1d}")
-            [ make_field ~format_spec:(make_int ~fill:(fill, 1) ()) arg ];
+            [ make_field ~format_spec:(make_int ~fill:(fill ~width:1) ()) arg ];
       "with_zero"
       >:: test
             ("{:x" ^ s ^ "010d}")
-            [ make_field ~format_spec:(make_int ~fill:(x_fill, 10) ()) arg ];
+            [
+              make_field ~format_spec:(make_int ~fill:(x_fill ~width:10) ()) arg;
+            ];
       "left_curl"
       >:: test
             ("{:{" ^ s ^ "1d}")
             [
               make_field
-                ~format_spec:(make_int ~fill:(make_fill ~char_:'{' align, 1) ())
+                ~format_spec:
+                  (make_int ~fill:(make_fill ~char_:'{' ~width:1 align) ())
                 arg;
             ];
       "right_curl"
@@ -46,7 +57,8 @@ let make_fill_tests align s =
             ("{:}" ^ s ^ "1d}")
             [
               make_field
-                ~format_spec:(make_int ~fill:(make_fill ~char_:'}' align, 1) ())
+                ~format_spec:
+                  (make_int ~fill:(make_fill ~char_:'}' ~width:1 align) ())
                 arg;
             ];
       "newline"
@@ -55,7 +67,7 @@ let make_fill_tests align s =
             [
               make_field
                 ~format_spec:
-                  (make_int ~fill:(make_fill ~char_:'\n' align, 1) ())
+                  (make_int ~fill:(make_fill ~char_:'\n' ~width:1 align) ())
                 arg;
             ];
       "tab"
@@ -64,13 +76,13 @@ let make_fill_tests align s =
             [
               make_field
                 ~format_spec:
-                  (make_int ~fill:(make_fill ~char_:'\t' align, 1) ())
+                  (make_int ~fill:(make_fill ~char_:'\t' ~width:1 align) ())
                 arg;
             ];
       "space"
       >:: test
             ("{: " ^ s ^ "1d}")
-            [ make_field ~format_spec:(make_int ~fill:(fill, 1) ()) arg ];
+            [ make_field ~format_spec:(make_int ~fill:(fill ~width:1) ()) arg ];
     ]
   in
   let special =
@@ -94,12 +106,31 @@ let make_fill_tests align s =
                 (ValueError
                    "'=' alignment not allowed in string format specifier");
         ]
+    | Left ->
+        [
+          "string_default"
+          >:: test "{:10s}"
+                [
+                  make_field
+                    ~format_spec:(make_string ~fill:(fill ~width:10) ())
+                    arg;
+                ];
+        ]
     | Right ->
         [
-          "default_align"
-          >:: test "{:10}"
+          "int_default"
+          >:: test "{:10d}"
                 [
-                  make_field ~format_spec:(make_string ~fill:(fill, 10) ()) arg;
+                  make_field
+                    ~format_spec:(make_int ~fill:(fill ~width:10) ())
+                    arg;
+                ];
+          "float_default"
+          >:: test "{:10g}"
+                [
+                  make_field
+                    ~format_spec:(make_float ~fill:(fill ~width:10) ())
+                    arg;
                 ];
         ]
     | _ -> []
@@ -116,6 +147,11 @@ let fill_tests =
        ]
 
 let make_sign_tests sign s =
+  let string_error =
+    match sign with
+    | Space -> "Space not allowed in string format specifier"
+    | _ -> "Sign not allowed in string format specifier"
+  in
   [
     "int"
     >:: test
@@ -125,10 +161,7 @@ let make_sign_tests sign s =
     >:: test
           ("{:" ^ s ^ "g}")
           [ make_field ~format_spec:(make_float ~sign ()) arg ];
-    "string"
-    >:: test_exc
-          ("{:" ^ s ^ "}")
-          (ValueError "Sign not allowed in string format specifier");
+    "string" >:: test_exc ("{:" ^ s ^ "}") (ValueError string_error);
   ]
 
 let sign_tests =
@@ -176,6 +209,17 @@ let grouping_option_tests =
   >::: [
          "comma" >::: make_grouping_option_tests Comma ",";
          "underscore" >::: make_grouping_option_tests Underscore "_";
+         "mixed"
+         >:: test_exc "{:,_}" (ValueError "Cannot specify both ',' and '_'");
+         "binary"
+         >:: test_exc "{:,b}"
+               (ValueError "Cannot specify ',' with 'b', 'o', 'x' or 'X'");
+         "octal"
+         >:: test_exc "{:,o}"
+               (ValueError "Cannot specify ',' with 'b', 'o', 'x' or 'X'");
+         "hex"
+         >:: test_exc "{:,x}"
+               (ValueError "Cannot specify ',' with 'b', 'o', 'x' or 'X'");
        ]
 
 let precision_tests =
@@ -277,7 +321,9 @@ let complex_tests =
                [
                  make_field
                    ~format_spec:
-                     (make_string ~fill:(make_fill ~char_:'-' Left, 10) ())
+                     (make_string
+                        ~fill:(make_fill ~char_:'-' ~width:10 Left)
+                        ())
                    arg;
                ];
          "int_1"
@@ -286,7 +332,7 @@ let complex_tests =
                  make_field
                    ~format_spec:
                      (make_int
-                        ~fill:(make_fill ~char_:'0' Pad, 10)
+                        ~fill:(make_fill ~char_:'0' ~width:10 Pad)
                         ~sign:Space ~alternate_form:true
                         ~grouping_option:Underscore ~type_:Octal ())
                    arg;
@@ -297,18 +343,18 @@ let complex_tests =
                  make_field
                    ~format_spec:
                      (make_int
-                        ~fill:(make_fill ~char_:'>' Right, 21)
+                        ~fill:(make_fill ~char_:'>' ~width:21 Right)
                         ~sign:Plus ~type_:Binary ())
                    arg;
                ];
          "int_3"
-         >:: test "{:.<-32,X}"
+         >:: test "{:.<-32_X}"
                [
                  make_field
                    ~format_spec:
                      (make_int
-                        ~fill:(make_fill ~char_:'.' Left, 32)
-                        ~sign:Minus ~grouping_option:Comma ~type_:Hex
+                        ~fill:(make_fill ~char_:'.' ~width:32 Left)
+                        ~sign:Minus ~grouping_option:Underscore ~type_:Hex
                         ~upper:true ())
                    arg;
                ];
@@ -318,7 +364,7 @@ let complex_tests =
                  make_field
                    ~format_spec:
                      (make_float
-                        ~fill:(make_fill ~char_:'0' Pad, 10)
+                        ~fill:(make_fill ~char_:'0' ~width:10 Pad)
                         ~sign:Space ~alternate_form:true
                         ~grouping_option:Underscore ~precision:12 ~type_:Fixed
                         ())
@@ -330,7 +376,7 @@ let complex_tests =
                  make_field
                    ~format_spec:
                      (make_float
-                        ~fill:(make_fill ~char_:'>' Right, 21)
+                        ~fill:(make_fill ~char_:'>' ~width:21 Right)
                         ~sign:Plus ~type_:Percentage ())
                    arg;
                ];
@@ -340,7 +386,7 @@ let complex_tests =
                  make_field
                    ~format_spec:
                      (make_float
-                        ~fill:(make_fill ~char_:'.' Left, 32)
+                        ~fill:(make_fill ~char_:'.' ~width:32 Left)
                         ~sign:Minus ~grouping_option:Comma ~precision:1
                         ~type_:General ~upper:true ())
                    arg;
