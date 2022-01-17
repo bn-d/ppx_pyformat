@@ -3,9 +3,6 @@ module P = Ppxlib
 module Ast_builder = Ppxlib.Ast_builder.Default
 module Ast_helper = Ppxlib.Ast_helper
 
-let expr_of_char_opt ~loc char_ : P.expression =
-  char_ |> Option.value ~default:' ' |> Ast_builder.echar ~loc
-
 let expr_of_runtime_fun ~loc fun_name =
   let lid = Longident.Ldot (Lident "Ppx_pyformat_runtime", fun_name) in
   Ast_helper.Exp.ident ~loc P.{ txt = lid; loc }
@@ -19,14 +16,15 @@ let expr_of_ids ~loc ids : P.expression =
         (Longident.Lident hd) tl
       |> fun lid -> P.{ txt = lid; loc } |> Ast_helper.Exp.ident ~loc
 
-let padding_of_fill = function
-  | Some ({ align = Pad; char_ }, width) -> Some (char_, width)
+let padding_of_fill (fill : fill option) =
+  match fill with
+  | Some { align = Pad; char_; width } -> Some (char_, width)
   | _ -> None
 
 let arg_opt_of_padding ~loc padding : (P.arg_label * P.expression) option =
   padding
   |> Option.map (fun (char_, width) ->
-         let char_expr = expr_of_char_opt ~loc char_ in
+         let char_expr = Ast_builder.echar ~loc char_ in
          let width_expr = Ast_builder.eint ~loc width in
          let open P in
          (Labelled "padding", [%expr [%e char_expr], [%e width_expr]]))
@@ -94,24 +92,22 @@ let apply_conversion ~loc conversion (expr : P.expression) : P.expression =
       let open P in
       [%expr [%e fun_expr] [%e expr]]
 
-let apply_align ~loc fun_name char_ width (expr : P.expression) : P.expression =
+let apply_fill ~loc fun_name char_ width (expr : P.expression) : P.expression =
   let func_expr = expr_of_runtime_fun ~loc fun_name in
-  let char_expr = expr_of_char_opt ~loc char_ in
+  let char_expr = Ast_builder.echar ~loc char_ in
   let width_expr = Ast_builder.eint ~loc width in
   let open P in
   [%expr [%e func_expr] [%e char_expr] [%e width_expr] [%e expr]]
 
-let apply_left_align = apply_align "align_left"
-
-let apply_right_align = apply_align "align_right"
-
-let apply_center_align = apply_align "align_center"
-
-let apply_string_format ~loc ~fill (expr : P.expression) : P.expression =
+let apply_string_format ~loc ~(fill : fill option) (expr : P.expression) :
+    P.expression =
   match fill with
-  | Some ({ align = Left; char_ }, w) -> apply_left_align ~loc char_ w expr
-  | Some ({ align = Right; char_ }, w) -> apply_right_align ~loc char_ w expr
-  | Some ({ align = Center; char_ }, w) -> apply_center_align ~loc char_ w expr
+  | Some { align = Left; char_; width } ->
+      apply_fill ~loc "align_left" char_ width expr
+  | Some { align = Right; char_; width } ->
+      apply_fill ~loc "align_right" char_ width expr
+  | Some { align = Center; char_; width } ->
+      apply_fill ~loc "align_center" char_ width expr
   | _ -> expr
 
 (** apply functions for binary format *)

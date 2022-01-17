@@ -98,14 +98,9 @@ and read_format_spec field = parse
   | "" { read_field_end field lexbuf }
 
 and read_fill format_spec field = parse
-  | _ ['<' '>' '=' '^'] {
-    let fill = Lexer_utils.parse_fill (lexeme lexbuf) in
-    read_sign { format_spec with fill } field lexbuf
-  }
-  (* with no fill char *)
-  | ['<' '>' '=' '^'] {
-    let fill = Lexer_utils.parse_fill_no_char (lexeme lexbuf) in
-    read_sign { format_spec with fill } field lexbuf
+  | _ ['<' '>' '=' '^'] | ['<' '>' '=' '^'] {
+    let align, char_ = Lexer_utils.parse_fill (lexeme lexbuf) in
+    read_sign { format_spec with align; char_ } field lexbuf
   }
   | "" { read_sign format_spec field lexbuf }
 

@@ -12,9 +12,8 @@ type align = Left | Right | Center | Pad
 
 type sign = Plus | Minus | Space
 
-type width = int
-
-type fill = { align : align; [@main] char_ : char option } [@@deriving make]
+type fill = { align : align; [@main] char_ : char; width : int }
+[@@deriving make]
 
 type grouping_option = Comma | Underscore
 
@@ -25,11 +24,12 @@ type float_type = Scientific | Fixed | General | Percentage
 type type_ = String | Int of int_type | Float of float_type
 
 type raw_format_spec = {
-  fill : fill option;
+  align : align option;
+  char_ : char option;
   sign : sign option;
   alternate_form : unit option;
   zero : unit option;
-  width : width option;
+  width : int option;
   grouping_option : grouping_option option;
   precision : int option;
   type_ : type_ option;
@@ -50,10 +50,10 @@ type raw_element = Raw_text of string | Raw_field of raw_replacement_field
 type raw_elements = raw_element list
 
 type format_spec =
-  | String_format of { fill : (fill * width) option }
+  | String_format of { fill : fill option }
   | Int_format of {
       type_ : int_type; [@default Decimal]
-      fill : (fill * width) option;
+      fill : fill option;
       sign : sign; [@default Minus]
       alternate_form : bool; [@default false]
       grouping_option : grouping_option option;
@@ -61,7 +61,7 @@ type format_spec =
     }
   | Float_format of {
       type_ : float_type; [@default General]
-      fill : (fill * width) option;
+      fill : fill option;
       sign : sign; [@default Minus]
       alternate_form : bool; [@default false]
       grouping_option : grouping_option option;

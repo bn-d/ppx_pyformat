@@ -107,7 +107,9 @@ let general_tests =
                  Text "my_date: ";
                  make_field ~conversion:[ "Date"; "to_string" ]
                    ~format_spec:
-                     (make_string ~fill:(make_fill ~char_:'-' Right, 9) ())
+                     (make_string
+                        ~fill:(make_fill ~char_:'-' ~width:9 Right)
+                        ())
                    (Identifier [ "my_date" ]);
                  Text "\n";
                ];
