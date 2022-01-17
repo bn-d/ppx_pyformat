@@ -94,13 +94,22 @@ let make_fill_tests align s =
                 (ValueError
                    "'=' alignment not allowed in string format specifier");
         ]
-    | Right ->
+    | Left ->
         [
-          "default_align"
-          >:: test "{:10}"
+          "string_default"
+          >:: test "{:10s}"
                 [
                   make_field ~format_spec:(make_string ~fill:(fill, 10) ()) arg;
                 ];
+        ]
+    | Right ->
+        [
+          "int_default"
+          >:: test "{:10d}"
+                [ make_field ~format_spec:(make_int ~fill:(fill, 10) ()) arg ];
+          "float_default"
+          >:: test "{:10g}"
+                [ make_field ~format_spec:(make_float ~fill:(fill, 10) ()) arg ];
         ]
     | _ -> []
   in
@@ -116,6 +125,11 @@ let fill_tests =
        ]
 
 let make_sign_tests sign s =
+  let string_error =
+    match sign with
+    | Space -> "Space not allowed in string format specifier"
+    | _ -> "Sign not allowed in string format specifier"
+  in
   [
     "int"
     >:: test
@@ -125,10 +139,7 @@ let make_sign_tests sign s =
     >:: test
           ("{:" ^ s ^ "g}")
           [ make_field ~format_spec:(make_float ~sign ()) arg ];
-    "string"
-    >:: test_exc
-          ("{:" ^ s ^ "}")
-          (ValueError "Sign not allowed in string format specifier");
+    "string" >:: test_exc ("{:" ^ s ^ "}") (ValueError string_error);
   ]
 
 let sign_tests =
@@ -176,6 +187,17 @@ let grouping_option_tests =
   >::: [
          "comma" >::: make_grouping_option_tests Comma ",";
          "underscore" >::: make_grouping_option_tests Underscore "_";
+         "mixed"
+         >:: test_exc "{:,_}" (ValueError "Cannot specify both ',' and '_'");
+         "binary"
+         >:: test_exc "{:,b}"
+               (ValueError "Cannot specify ',' with 'b', 'o', 'x' or 'X'");
+         "octal"
+         >:: test_exc "{:,o}"
+               (ValueError "Cannot specify ',' with 'b', 'o', 'x' or 'X'");
+         "hex"
+         >:: test_exc "{:,x}"
+               (ValueError "Cannot specify ',' with 'b', 'o', 'x' or 'X'");
        ]
 
 let precision_tests =
@@ -302,13 +324,13 @@ let complex_tests =
                    arg;
                ];
          "int_3"
-         >:: test "{:.<-32,X}"
+         >:: test "{:.<-32_X}"
                [
                  make_field
                    ~format_spec:
                      (make_int
                         ~fill:(make_fill ~char_:'.' Left, 32)
-                        ~sign:Minus ~grouping_option:Comma ~type_:Hex
+                        ~sign:Minus ~grouping_option:Underscore ~type_:Hex
                         ~upper:true ())
                    arg;
                ];

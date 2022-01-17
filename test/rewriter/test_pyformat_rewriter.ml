@@ -75,6 +75,7 @@ let string_tests =
          "right" >:: test "__str" [%pyformat "{s:_>5}"];
          "center" >:: test "_str_" [%pyformat "{s:_^5}"];
          "complex" >:: test "_str_" [%pyformat "{l[0]!Fun.id:_^5}"];
+         "default_align" >:: test "str  " [%pyformat "{s:5}"];
        ]
 
 let int_tests =
@@ -90,6 +91,7 @@ let int_tests =
          "left" >:: test "1024_" [%pyformat "{d1:_<5d}"];
          "right" >:: test "_1024" [%pyformat "{d1:_>5d}"];
          "center" >:: test "1024_" [%pyformat "{d1:_^5d}"];
+         "default_align" >:: test " 1024" [%pyformat "{d1:5d}"];
          "binary_simple" >:: test "1111011" [%pyformat "{b1:b}"];
          "binary_complex_1" >:: test "_+111_1011" [%pyformat "{b1:_>+10_b}"];
          "binary_complex_2" >:: test "-0b....11" [%pyformat "{b2:.=-#9_b}"];

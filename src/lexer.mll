@@ -137,6 +137,9 @@ and read_grouping_option format_spec field = parse
     in
     read_precision { format_spec with grouping_option } field lexbuf
   }
+  | ",_" | "_," {
+    raise (ValueError "Cannot specify both ',' and '_'")
+  }
   | "" { read_precision format_spec field lexbuf }
 
 and read_precision format_spec field = parse
