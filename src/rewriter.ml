@@ -35,7 +35,6 @@ let value_binding_of_arg index (expr : P.expression) : P.value_binding =
   Ast_helper.Vb.mk ~loc pat expr
 
 let generate_format_expr ~loc ?(args = []) (str : string) : P.expression =
-  (* TODO args valudation *)
   let str_expr =
     str
     |> Utils.parse
