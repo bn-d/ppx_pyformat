@@ -211,9 +211,6 @@ let suite =
                 "grouping_5"
                 >:: test "1000_0000"
                       (int_to_hexadecimal ~grouping:true 268435456);
-                "grouping_6"
-                >:: test "1_0000_0000"
-                      (int_to_hexadecimal ~grouping:true 4294967296);
                 "padding_1"
                 >:: test "....1" (int_to_hexadecimal ~padding:('.', 5) 1);
                 "padding_2"

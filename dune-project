@@ -1,6 +1,6 @@
 (lang dune 2.7)
 (name ppx_pyformat)
-(version "0.1.0")
+(version "0.1.1")
 
 (generate_opam_files true)
 
@@ -14,7 +14,8 @@
  (name ppx_pyformat)
  (synopsis "Ppxlib based string format rewriter inspired by Python string `format`")
  (depends
-  (ppxlib (>= 0.10.0))
+  (ocaml (>= 4.08))
+  (ppxlib (>= 0.22.0))
   (ppx_make (>= 0.3.0))
   menhir
   (ounit2 :with-test)))
