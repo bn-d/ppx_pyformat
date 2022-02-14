@@ -2,7 +2,7 @@
 [![OCaml](https://img.shields.io/badge/-OCaml-EC6813?logo=ocaml&labelColor=grey)](#)
 [![CI Workflow](https://github.com/bn-d/ppx_pyformat/actions/workflows/build.yml/badge.svg)](https://github.com/bn-d/ppx_pyformat/actions/workflows/build.yml)
 
-ppxlib based string format rewriter inspired by Python string `format`. This rewriter provides the ability to do complex variable substitutions and value formatting.
+ppxlib based rewriter inspired by Python string `format()`. This rewriter provides the ability to do complex variable substitutions and value formatting.
 
 ## Installation
 `ppx_pyformat` can be installed via [OCaml Package Manager](https://opam.ocaml.org/packages/ppx_pyformat/).
@@ -17,13 +17,13 @@ To use this rewriter, add `(preprocess (pps ppx_pyformat))` to the library/execu
 ```ocaml
 let _ =
   let action = "Hello" in
-  Printf.printf [%pyformat "{action} {0}!"; "World"]
+  print_string [%pyformat "{action} {0}!"; "World"]
 ```
 
 The rewriter takes a required format string following with optional input arguments. The rewriter will parse the format string, substitute/format the replacement fields and finally return everything as a single `string`. This works very similarly to its archetype, the `str.format()` method in Python.
 
 ### Format String Syntax
-The format string syntax of `ppx_pyformat` is closely modeled after [that of Python3.10](https://docs.python.org/3.10/library/string.html#format-string-syntax). Most format strings should be compatible with `ppx_format` with minor modification. But even with the best effort to match Python `format`'s behaviors, there are still key differences due the differences in languages. Several additional features are implemented to overcome the shortfall of static typing and enable more capabilities.
+The format string syntax of `ppx_pyformat` is closely modeled after [that of Python3.10](https://docs.python.org/3.10/library/string.html#format-string-syntax). Most format strings should be compatible with `ppx_pyformat` with minor modification. But even with the best effort to match Python `format`'s behaviors, there are still key differences due the differences in languages. Several additional features are implemented to overcome the shortfall of static typing and enable more capabilities.
 
 Format strings contain “replacement fields” surrounded by curly braces `{}`. Anything that is not contained in braces is considered literal text, which is copied unchanged to the output. If the user needs to include a brace character in the literal text, it can be escaped by doubling: `{{` and `}}`.
 
