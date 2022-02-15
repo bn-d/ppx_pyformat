@@ -41,10 +41,15 @@ let generate_format_expr ~loc ?(args = []) (str : string) : P.expression =
     |> Utils.parse
     |> validate_positional_args ~loc ~length:(List.length args)
     |> List.map (Element_gen.string_expr_of_element ~loc)
-    |> Ast_builder.elist ~loc
-    |> fun list_expr ->
-    let open P in
-    [%expr String.concat "" [%e list_expr]]
+    |> function
+    | [] ->
+        let open P in
+        [%expr ""]
+    | [ expr ] -> expr
+    | expr_list ->
+        let list_expr = Ast_builder.elist ~loc expr_list in
+        let open P in
+        [%expr String.concat "" [%e list_expr]]
   in
   if List.length args > 0 then
     let bindings = List.mapi value_binding_of_arg args in
