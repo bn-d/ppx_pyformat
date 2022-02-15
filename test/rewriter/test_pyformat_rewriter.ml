@@ -8,6 +8,7 @@ let text_tests =
          "simple" >:: test "123abcABC,.;' \t\n" [%pyformat "123abcABC,.;' \t\n"];
          "curl_escape" >:: test "{}}{" [%pyformat "{{}}}}{{"];
          "consolidation" >:: test "123{}321" [%pyformat "123{{}}321"];
+         "empty" >:: test "" [%pyformat ""];
        ]
 
 let index_tests =
@@ -168,7 +169,12 @@ let arg_tests =
                  s1;
                  s2;
                  "!"];
-         "mixed"
+         "mixed_1"
+         >:: test "hello world!"
+               [%pyformat
+                 "{0} world!";
+                 s1];
+         "mixed_2"
          >:: test "hello world!"
                [%pyformat
                  "{s1} {s2}{0}";

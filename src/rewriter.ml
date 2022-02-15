@@ -46,6 +46,9 @@ let generate_format_expr ~loc ?(args = []) (str : string) : P.expression =
         let open P in
         [%expr ""]
     | [ expr ] -> expr
+    | [ expr_1; expr_2 ] ->
+        let open P in
+        [%expr [%e expr_1] ^ [%e expr_2]]
     | expr_list ->
         let list_expr = Ast_builder.elist ~loc expr_list in
         let open P in
