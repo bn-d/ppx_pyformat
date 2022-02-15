@@ -1,5 +1,6 @@
 module B = Bytes
 
+external format_int : string -> int -> string = "caml_format_int"
 external bytes_unsafe_set : bytes -> int -> char -> unit = "%bytes_unsafe_set"
 
 external bytes_unsafe_fill :
@@ -147,8 +148,6 @@ let int_to_decimal ?padding ?(sign = Minus) ?grouping_option num =
   let num_str = string_of_int (abs num) in
   handle_int_padding_grouping padding grouping prefix num_str
 
-let string_of_octal_int num = Printf.sprintf "%o" num
-
 let int_to_octal
     ?padding
     ?(sign = Minus)
@@ -157,10 +156,8 @@ let int_to_octal
     num =
   let prefix = sign_str_of_int sign num ^ if alternate_form then "0o" else "" in
   let grouping = if grouping then Some ("_", 4) else None in
-  let num_str = string_of_octal_int (abs num) in
+  let num_str = format_int "%o" (abs num) in
   handle_int_padding_grouping padding grouping prefix num_str
-
-let string_of_hexadecimal_int num = Printf.sprintf "%x" num
 
 let int_to_hexadecimal
     ?padding
@@ -174,7 +171,7 @@ let int_to_hexadecimal
     ^ if not alternate_form then "" else if upper then "0X" else "0x"
   in
   let grouping = if grouping then Some ("_", 4) else None in
-  let num_str = abs num |> string_of_hexadecimal_int |> handle_upper upper in
+  let num_str = abs num |> format_int "%x" |> handle_upper upper in
   handle_int_padding_grouping padding grouping prefix num_str
 
 let is_special_float num = not (Float.is_finite num)
