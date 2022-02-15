@@ -1,5 +1,7 @@
 module B = Bytes
 
+external bytes_unsafe_set : bytes -> int -> char -> unit = "%bytes_unsafe_set"
+
 external bytes_unsafe_fill :
   bytes -> int -> int -> char -> unit
   = "caml_fill_bytes"
@@ -106,20 +108,24 @@ let handle_int_padding_grouping pad grouping prefix num_str =
 (** handle upper option *)
 let handle_upper upper str = if upper then String.uppercase_ascii str else str
 
+let rec string_of_binary_int_impl (b, l) cur =
+  if cur = 0 then
+    l
+  else (
+    if cur mod 2 = 0 then
+      bytes_unsafe_set b (63 - l) '0'
+    else
+      bytes_unsafe_set b (63 - l) '1';
+    string_of_binary_int_impl (b, l + 1) (Int.shift_right cur 1))
+
 (** convert int to binary string. only take non-negative number *)
 let string_of_binary_int num =
-  let rec impl acc cur =
-    if cur = 0 then
-      acc
-    else if cur mod 2 = 0 then
-      impl ("0" ^ acc) (Int.shift_right cur 1)
-    else
-      impl ("1" ^ acc) (Int.shift_right cur 1)
-  in
   if num = 0 then
     "0"
   else
-    impl "" num
+    let b = B.create 64 in
+    let l = string_of_binary_int_impl (b, 0) num in
+    B.sub_string b (64 - l) l
 
 let int_to_binary
     ?padding
