@@ -1,25 +1,49 @@
+module B = Bytes
+
+external bytes_unsafe_fill :
+  bytes -> int -> int -> char -> unit
+  = "caml_fill_bytes"
+  [@@noalloc]
+
+external bytes_unsafe_blit_string :
+  string -> int -> bytes -> int -> int -> unit
+  = "caml_blit_string"
+  [@@noalloc]
+
+external bytes_unsafe_to_string : bytes -> string = "%bytes_to_string"
+
 let align_left c w s =
   let len = String.length s in
   if len >= w then
     s
   else
-    s ^ String.make (w - len) c
+    let b = B.create w in
+    bytes_unsafe_blit_string s 0 b 0 len;
+    bytes_unsafe_fill b len (w - len) c;
+    bytes_unsafe_to_string b
 
 let align_right c w s =
   let len = String.length s in
   if len >= w then
     s
   else
-    String.make (w - len) c ^ s
+    let b = B.create w and fill_len = w - len in
+    bytes_unsafe_fill b 0 fill_len c;
+    bytes_unsafe_blit_string s 0 b fill_len len;
+    bytes_unsafe_to_string b
 
 let align_center c w s =
   let len = String.length s in
   if len >= w then
     s
   else
-    let left_l = (w - len) / 2 in
-    let right_l = w - len - left_l in
-    String.make left_l c ^ s ^ String.make right_l c
+    let b = B.create w in
+    let left_len = (w - len) / 2 in
+    let right_len = w - len - left_len in
+    bytes_unsafe_fill b 0 left_len c;
+    bytes_unsafe_blit_string s 0 b left_len len;
+    bytes_unsafe_fill b (left_len + len) right_len c;
+    bytes_unsafe_to_string b
 
 type padding_config = char * int
 type sign = Plus | Minus | Space
