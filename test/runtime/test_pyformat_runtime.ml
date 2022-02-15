@@ -45,5 +45,4 @@ let align_tests =
        ]
 
 let suite = "test_pyformat_runtime" >::: [ align_tests; Int.suite; Float.suite ]
-
 let _ = run_test_tt_main suite

@@ -8,6 +8,7 @@ let text_tests =
          "simple" >:: test "123abcABC,.;' \t\n" [%pyformat "123abcABC,.;' \t\n"];
          "curl_escape" >:: test "{}}{" [%pyformat "{{}}}}{{"];
          "consolidation" >:: test "123{}321" [%pyformat "123{{}}321"];
+         "empty" >:: test "" [%pyformat ""];
        ]
 
 let index_tests =
@@ -62,8 +63,7 @@ let format_spec_tests =
          "alternate_form" >:: test "0b1" [%pyformat "{b1:#b}"];
          grouping_option_tests;
          "underscore_grouping" >:: test "1_0000" [%pyformat "{b2:_b}"];
-         "upper" >:: test "A" [%pyformat "{x1:X}"];
-         (* precision_tests;*)
+         "upper" >:: test "A" [%pyformat "{x1:X}"] (* precision_tests;*);
        ]
 
 let string_tests =
@@ -169,7 +169,12 @@ let arg_tests =
                  s1;
                  s2;
                  "!"];
-         "mixed"
+         "mixed_1"
+         >:: test "hello world!"
+               [%pyformat
+                 "{0} world!";
+                 s1];
+         "mixed_2"
          >:: test "hello world!"
                [%pyformat
                  "{s1} {s2}{0}";

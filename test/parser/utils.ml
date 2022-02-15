@@ -6,9 +6,7 @@ let make_field ?index ?conversion ?(format_spec = format_spec) arg =
   Field (make_replacement_field ~arg ?index ?conversion ~format_spec ())
 
 let make_string = make_string_format_of_format_spec
-
 let make_int = make_int_format_of_format_spec
-
 let make_float = make_float_format_of_format_spec
 
 let test str expected _ =

@@ -1,4 +1,5 @@
 module P = Ppxlib
+module Ast_builder = Ppxlib.Ast_builder.Default
 module Ast_helper = Ppxlib.Ast_helper
 
 let concat_lid : Longident.t = Lident "^"
@@ -40,20 +41,18 @@ let generate_format_expr ~loc ?(args = []) (str : string) : P.expression =
     |> Utils.parse
     |> validate_positional_args ~loc ~length:(List.length args)
     |> List.map (Element_gen.string_expr_of_element ~loc)
-    |> fun exprs ->
-    match exprs with
+    |> function
     | [] ->
         let open P in
         [%expr ""]
-    | hd :: tl ->
-        List.fold_left
-          (fun acc cur ->
-            let concat_expr =
-              Ast_helper.Exp.ident P.{ txt = concat_lid; loc }
-            in
-            Ast_helper.Exp.apply ~loc concat_expr
-              [ (Nolabel, acc); (Nolabel, cur) ])
-          hd tl
+    | [ expr ] -> expr
+    | [ expr_1; expr_2 ] ->
+        let open P in
+        [%expr [%e expr_1] ^ [%e expr_2]]
+    | expr_list ->
+        let list_expr = Ast_builder.elist ~loc expr_list in
+        let open P in
+        [%expr String.concat "" [%e list_expr]]
   in
   if List.length args > 0 then
     let bindings = List.mapi value_binding_of_arg args in

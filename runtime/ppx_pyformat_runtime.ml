@@ -22,9 +22,7 @@ let align_center c w s =
     String.make left_l c ^ s ^ String.make right_l c
 
 type padding_config = char * int
-
 type sign = Plus | Minus | Space
-
 type grouping_option = Comma | Underscore
 
 (** get sign string of number *)
@@ -36,7 +34,6 @@ let sign_str_of_num is_positive sign num =
   | _ -> "-"
 
 let sign_str_of_int = sign_str_of_num (fun num -> num >= 0)
-
 let sign_str_of_float = sign_str_of_num (fun num -> not (Float.sign_bit num))
 
 let grouping_config_of_grouping_option grouping_option =
