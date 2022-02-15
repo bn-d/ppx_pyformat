@@ -1,26 +1,18 @@
 exception KeyError of string
-
 exception TypeError of string
-
 exception ValueError of string
 
 type arg = Digit of int | Identifier of string list
-
 type index = List_index of int
-
 type align = Left | Right | Center | Pad
-
 type sign = Plus | Minus | Space
 
 type fill = { align : align; [@main] char_ : char; width : int }
 [@@deriving make]
 
 type grouping_option = Comma | Underscore
-
 type int_type = Binary | Char | Decimal | Octal | Hex
-
 type float_type = Scientific | Fixed | General | Percentage
-
 type type_ = String | Int of int_type | Float of float_type
 
 type raw_format_spec = {
@@ -46,7 +38,6 @@ type raw_replacement_field = {
 [@@deriving make]
 
 type raw_element = Raw_text of string | Raw_field of raw_replacement_field
-
 type raw_elements = raw_element list
 
 type format_spec =
@@ -79,5 +70,4 @@ type replacement_field = {
 [@@deriving make]
 
 type element = Text of string | Field of replacement_field
-
 type elements = element list

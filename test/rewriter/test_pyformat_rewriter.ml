@@ -62,8 +62,7 @@ let format_spec_tests =
          "alternate_form" >:: test "0b1" [%pyformat "{b1:#b}"];
          grouping_option_tests;
          "underscore_grouping" >:: test "1_0000" [%pyformat "{b2:_b}"];
-         "upper" >:: test "A" [%pyformat "{x1:X}"];
-         (* precision_tests;*)
+         "upper" >:: test "A" [%pyformat "{x1:X}"] (* precision_tests;*);
        ]
 
 let string_tests =

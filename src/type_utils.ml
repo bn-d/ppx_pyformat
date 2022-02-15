@@ -3,7 +3,6 @@ open Types
 type mode = Auto of int | Manual
 
 let arg_mode : mode option ref = ref None
-
 let reset_arg_mode _ = arg_mode := None
 
 let set_arg_manual _ =

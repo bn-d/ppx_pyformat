@@ -1,13 +1,9 @@
 val align_left : char -> int -> string -> string
-
 val align_right : char -> int -> string -> string
-
 val align_center : char -> int -> string -> string
 
 type padding_config = char * int
-
 type sign = Plus | Minus | Space
-
 type grouping_option = Comma | Underscore
 
 val int_to_binary :
