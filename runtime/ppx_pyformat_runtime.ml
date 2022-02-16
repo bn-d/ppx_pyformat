@@ -65,21 +65,33 @@ let sign_str_of_float = sign_str_of_num (fun num -> not (Float.sign_bit num))
 
 let grouping_config_of_grouping_option grouping_option =
   match grouping_option with
-  | Some Underscore -> Some ("_", 3)
-  | Some Comma -> Some (",", 3)
+  | Some Underscore -> Some ('_', 3)
+  | Some Comma -> Some (',', 3)
   | None -> None
 
 (** insert grouping separator into string *)
-let insert_grouping separator width str =
+let insert_grouping separator sep_width str =
   let l = String.length str in
-  let rec impl acc index =
-    if index - width <= 0 then
-      String.sub str 0 index ^ separator ^ acc
-    else
-      let acc = String.sub str (index - width) width ^ separator ^ acc in
-      impl acc (index - width)
-  in
-  if l <= width then str else impl (String.sub str (l - width) width) (l - width)
+  if l <= sep_width then
+    str
+  else
+    let rem = Int.rem l sep_width in
+    let width, ini_len =
+      if rem = 0 then
+        ((l / sep_width * (sep_width + 1)) - 1, sep_width)
+      else
+        ((l / sep_width * (sep_width + 1)) + rem, rem)
+    in
+    let b = B.create width in
+    let rec impl spos bpos =
+      if bpos < width then (
+        bytes_unsafe_set b bpos separator;
+        bytes_unsafe_blit_string str spos b (bpos + 1) sep_width;
+        impl (spos + sep_width) (bpos + sep_width + 1))
+    in
+    bytes_unsafe_blit_string str 0 b 0 ini_len;
+    impl ini_len ini_len;
+    bytes_unsafe_to_string b
 
 (** handle grouping and padding option *)
 let handle_padding_grouping padding grouping prefix num_str suffix =
@@ -135,7 +147,7 @@ let int_to_binary
     ?(grouping = false)
     num =
   let prefix = sign_str_of_int sign num ^ if alternate_form then "0b" else "" in
-  let grouping = if grouping then Some ("_", 4) else None in
+  let grouping = if grouping then Some ('_', 4) else None in
   let num_str = string_of_binary_int (abs num) in
   handle_int_padding_grouping padding grouping prefix num_str
 
@@ -155,7 +167,7 @@ let int_to_octal
     ?(grouping = false)
     num =
   let prefix = sign_str_of_int sign num ^ if alternate_form then "0o" else "" in
-  let grouping = if grouping then Some ("_", 4) else None in
+  let grouping = if grouping then Some ('_', 4) else None in
   let num_str = format_int "%o" (abs num) in
   handle_int_padding_grouping padding grouping prefix num_str
 
@@ -170,7 +182,7 @@ let int_to_hexadecimal
     sign_str_of_int sign num
     ^ if not alternate_form then "" else if upper then "0X" else "0x"
   in
-  let grouping = if grouping then Some ("_", 4) else None in
+  let grouping = if grouping then Some ('_', 4) else None in
   let num_str = abs num |> format_int "%x" |> handle_upper upper in
   handle_int_padding_grouping padding grouping prefix num_str
 
