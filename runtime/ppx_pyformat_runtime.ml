@@ -1,52 +1,37 @@
-module B = Bytes
-
 external format_int : string -> int -> string = "caml_format_int"
-external bytes_unsafe_set : bytes -> int -> char -> unit = "%bytes_unsafe_set"
-
-external bytes_unsafe_fill :
-  bytes -> int -> int -> char -> unit
-  = "caml_fill_bytes"
-  [@@noalloc]
-
-external bytes_unsafe_blit_string :
-  string -> int -> bytes -> int -> int -> unit
-  = "caml_blit_string"
-  [@@noalloc]
-
-external bytes_unsafe_to_string : bytes -> string = "%bytes_to_string"
 
 let align_left c w s =
   let len = String.length s in
   if len >= w then
     s
   else
-    let b = B.create w in
-    bytes_unsafe_blit_string s 0 b 0 len;
-    bytes_unsafe_fill b len (w - len) c;
-    bytes_unsafe_to_string b
+    let b = Bytes.create w in
+    Bytes.unsafe_blit_string s 0 b 0 len;
+    Bytes.unsafe_fill b len (w - len) c;
+    Bytes.unsafe_to_string b
 
 let align_right c w s =
   let len = String.length s in
   if len >= w then
     s
   else
-    let b = B.create w and fill_len = w - len in
-    bytes_unsafe_fill b 0 fill_len c;
-    bytes_unsafe_blit_string s 0 b fill_len len;
-    bytes_unsafe_to_string b
+    let b = Bytes.create w and fill_len = w - len in
+    Bytes.unsafe_fill b 0 fill_len c;
+    Bytes.unsafe_blit_string s 0 b fill_len len;
+    Bytes.unsafe_to_string b
 
 let align_center c w s =
   let len = String.length s in
   if len >= w then
     s
   else
-    let b = B.create w in
+    let b = Bytes.create w in
     let left_len = (w - len) / 2 in
     let right_len = w - len - left_len in
-    bytes_unsafe_fill b 0 left_len c;
-    bytes_unsafe_blit_string s 0 b left_len len;
-    bytes_unsafe_fill b (left_len + len) right_len c;
-    bytes_unsafe_to_string b
+    Bytes.unsafe_fill b 0 left_len c;
+    Bytes.unsafe_blit_string s 0 b left_len len;
+    Bytes.unsafe_fill b (left_len + len) right_len c;
+    Bytes.unsafe_to_string b
 
 type padding_config = char * int
 type sign = Plus | Minus | Space
@@ -82,16 +67,16 @@ let insert_grouping separator sep_width str =
       else
         ((l / sep_width * (sep_width + 1)) + rem, rem)
     in
-    let b = B.create width in
+    let b = Bytes.create width in
     let rec impl spos bpos =
       if bpos < width then (
-        bytes_unsafe_set b bpos separator;
-        bytes_unsafe_blit_string str spos b (bpos + 1) sep_width;
+        Bytes.set b bpos separator;
+        Bytes.blit_string str spos b (bpos + 1) sep_width;
         impl (spos + sep_width) (bpos + sep_width + 1))
     in
-    bytes_unsafe_blit_string str 0 b 0 ini_len;
+    Bytes.blit_string str 0 b 0 ini_len;
     impl ini_len ini_len;
-    bytes_unsafe_to_string b
+    Bytes.unsafe_to_string b
 
 (** handle grouping and padding option *)
 let handle_padding_grouping padding grouping prefix num_str suffix =
@@ -123,12 +108,12 @@ let handle_upper upper str = if upper then String.uppercase_ascii str else str
 
 let rec string_of_binary_int_impl (b, l) cur =
   if cur = 0 then
-    l
+    Bytes.sub_string b (64 - l) l
   else (
     if cur mod 2 = 0 then
-      bytes_unsafe_set b (63 - l) '0'
+      Bytes.unsafe_set b (63 - l) '0'
     else
-      bytes_unsafe_set b (63 - l) '1';
+      Bytes.unsafe_set b (63 - l) '1';
     string_of_binary_int_impl (b, l + 1) (Int.shift_right cur 1))
 
 (** convert int to binary string. only take non-negative number *)
@@ -136,9 +121,8 @@ let string_of_binary_int num =
   if num = 0 then
     "0"
   else
-    let b = B.create 64 in
-    let l = string_of_binary_int_impl (b, 0) num in
-    B.sub_string b (64 - l) l
+    let b = Bytes.create 64 in
+    string_of_binary_int_impl (b, 0) num
 
 let int_to_binary
     ?padding
