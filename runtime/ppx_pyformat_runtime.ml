@@ -1,12 +1,17 @@
 external format_int : string -> int -> string = "caml_format_int"
 
+external bytes_unsafe_blit_string :
+  string -> int -> bytes -> int -> int -> unit
+  = "caml_blit_string"
+  [@@noalloc]
+
 let align_left c w s =
   let len = String.length s in
   if len >= w then
     s
   else
     let b = Bytes.create w in
-    Bytes.unsafe_blit_string s 0 b 0 len;
+    bytes_unsafe_blit_string s 0 b 0 len;
     Bytes.unsafe_fill b len (w - len) c;
     Bytes.unsafe_to_string b
 
@@ -17,7 +22,7 @@ let align_right c w s =
   else
     let b = Bytes.create w and fill_len = w - len in
     Bytes.unsafe_fill b 0 fill_len c;
-    Bytes.unsafe_blit_string s 0 b fill_len len;
+    bytes_unsafe_blit_string s 0 b fill_len len;
     Bytes.unsafe_to_string b
 
 let align_center c w s =
@@ -29,7 +34,7 @@ let align_center c w s =
     let left_len = (w - len) / 2 in
     let right_len = w - len - left_len in
     Bytes.unsafe_fill b 0 left_len c;
-    Bytes.unsafe_blit_string s 0 b left_len len;
+    bytes_unsafe_blit_string s 0 b left_len len;
     Bytes.unsafe_fill b (left_len + len) right_len c;
     Bytes.unsafe_to_string b
 
