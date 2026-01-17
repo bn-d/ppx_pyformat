@@ -2,9 +2,12 @@ name: CI Workflow
 
 on:
   push:
-    branches: [ master ]
+    branches: [main]
   pull_request:
-    branches: [ master ]
+    branches: [main]
+  workflow_dispatch:
+
+permissions: read-all
 
 jobs:
   build:
@@ -14,15 +17,16 @@ jobs:
         os:
           - ubuntu-latest
         ocaml-compiler:
-          - 4.12.x
+          - 4.14.2
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout tree
+        uses: actions/checkout@v6
 
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
-        uses: ocaml/setup-ocaml@v2
+        uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
